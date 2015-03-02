@@ -1,0 +1,21 @@
+http://habrahabr.ru/post/220113/
+
+ GET /x64/600/av/windows/timestamp 
+ HTTP/1.1 Accept: */* 
+ Host: update.drweb.com 
+ X-DrWeb-Validate: 259e9b92fa099939d198dbd82c106f95 
+ X-DrWeb-KeyNumber: 0110258647 
+ X-DrWeb-SysHash: E2E8203CB505AE00939EEC9C1D58D0E4 
+ User-Agent: DrWebUpdate-6.00.15.06220 (windows: 6.01.7601) 
+ Connection: Keep-Alive 
+ Cache-Control: no-cache 
+
+ HTTP/1.1 200 OK 
+ Server: nginx/42 Date: Sat, 19 Apr 2014 10:33:36 GMT 
+ Content-Type: application/octet-stream 
+ Content-Length: 10 
+ Last-Modified: Sat, 19 Apr 2014 09:26:19 GMT 
+ Connection: keep-alive 
+ Accept-Ranges: bytes 
+
+ 1397898695

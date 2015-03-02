@@ -1,0 +1,33 @@
+[v1.5] - 07 Feb 2015
+* Fixed some bugs and memory leaks
+
+[v1.4] - 06 Feb 2015
+* Added support of version 5 of update protocol
+* Added options for fast checksum checking
+* Refactored some parts of code
+* Fixed some bugs in network module
+* Added project file for QtCreator
+
+[v1.3] - 31 Jan 2015
+* Added support of DrWeb for Android
+* Added protocol autodetection
+* Improved help and diagnostic messages
+
+[v1.2] - 20 Jan 2015
+* Fixed strcpy buffers overflow
+* Added option for even more verbose output
+* Improved help and diagnostic messages
+
+[v1.1] - 16 Jan 2015
+* Added support of DrWeb 10 for Windows and Unix
+* Added options for manual set UserID and MD5
+* Added option for custom server port
+* Added support of X-DrWeb-SysHash
+* Added support of 30x redirect responses
+* Added description of responses 451, 452 and 600
+* Updated default key values
+* Increased size of some buffers
+
+[v1.0] - 27 Sep 2014
+* Initial release
+

@@ -1,0 +1,47 @@
+## DrWeb Pro 6.01.8
+GET /android/6.1/drwebce.lst HTTP/1.1
+Accept: */*
+User-Agent: Dr.Web Updater Symbian/1.0
+Host: update.drweb.com
+Connection: Keep-Alive
+
+## DrWeb Pro 7.00.2
+GET /android/6.1/drwebce.lst HTTP/1.1
+Accept: */*
+User-Agent: Dr.Web anti-virus License:DRWEB KEY (Support ES)  LicenseState:LICENSE KEY  Activation Date:23:34 07/03/2011  Expiration Date:00:34 20/05/2016  Owner:20= BB>
+Host: update.drweb.com
+Connection: Keep-Alive
+
+## DrWeb Pro 8.00.7(1)
+GET /android/6.1/drwebce.lst HTTP/1.1
+Accept: */*
+User-Agent: Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 8.00.7.7028 Device model: LG-P500 Firmware version: 2.3.7
+X-DrWeb-KeyNumber: 13629614
+X-DrWeb-Validate: b2d2c3443650fa99f894e3379d39f788
+X-DrWeb-SysHash: 076d159026d0baa43606f970bc51ceda
+Host: update.drweb.com
+Connection: Keep-Alive
+
+## DrWeb Light 7.00.0
+GET /android/6.1/drwebce.lst HTTP/1.1
+Accept: */*
+User-Agent: Dr.Web Updater Symbian/1.0
+Host: update.drweb.com
+Connection: Keep-Alive
+
+## DrWeb Light 7.00.14(0)
+GET /android/9/version.lst HTTP/1.1
+Accept: */*
+User-Agent: Dr.Web anti-virus Light Version: 7.00.14.7036 Device model: LG-P500 Firmware version: 2.3.7
+X-DrWeb-SysHash: 076d159026d0baa43606f970bc51ceda
+Host: update.drweb.com
+Connection: Keep-Alive
+
+## DrWeb Light 9.00.2(0)
+GET /android/9/version.lst HTTP/1.1
+Accept: */*
+User-Agent: Dr.Web anti-virus Light Version: 9.00.2.7039 Device model: LG-P500 Firmware version: 2.3.7
+X-DrWeb-SysHash: 076d159026d0baa43606f970bc51ceda
+Host: update.drweb.com
+Connection: Keep-Alive
+

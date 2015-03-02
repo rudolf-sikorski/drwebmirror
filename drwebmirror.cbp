@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="drwebmirror" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/drwebmirror" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/drwebmirror" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wextra" />
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="src/checksum.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/common.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/crc32/crc32.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/decompress.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/drwebmirror.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/drwebmirror.h" />
+		<Unit filename="src/filesystem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/avltree/avltree.h" />
+		<Unit filename="src/avltree/avltree.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lzma/7zFile.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lzma/7zFile.h" />
+		<Unit filename="src/lzma/7zStream.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lzma/Alloc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lzma/Alloc.h" />
+		<Unit filename="src/lzma/LzmaDec.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lzma/LzmaDec.h" />
+		<Unit filename="src/lzma/Types.h" />
+		<Unit filename="src/main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/md5/global.h" />
+		<Unit filename="src/md5/md5.h" />
+		<Unit filename="src/md5/md5c.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/network.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/sha256/sha256.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<debugger />
+			<lib_finder disable_auto="1" />
+			<editor_config active="1" use_tabs="0" tab_indents="1" tab_width="4" indent="4" eol_mode="2" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

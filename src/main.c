@@ -101,6 +101,8 @@ void show_help()
     printf("| DrWeb 10.0 for Unix                  | unix/1000/vdb                | 4/5 |\n");
     printf("|                                      | unix/1000/dws                | 4/5 |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
+    printf("| DrWeb 9.0 LiveDisk                   | livecd/900/windows           | 4/5 |\n");
+    printf("|--------------------------------------|------------------------------|-----|\n");
     printf("| DrWeb 7.0 for Windows                | xmlzone/release/700/av       |  7  |\n");
     printf("| DrWeb 7.0 Security Space for Windows | xmlzone/release/700/sspace   |  7  |\n");
     printf("| DrWeb 7.0 for Windows Server         | xmlzone/release/700/servers  |  7  |\n");

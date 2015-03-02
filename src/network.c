@@ -113,9 +113,11 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
     fcntl(* sock_fd, F_SETFL, sock_opts);
 
     /* Set recv timeout value */
-    setsockopt(* sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const void *)(& tv), sizeof(struct timeval));
+    if(setsockopt(* sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const void *)(& tv), sizeof(struct timeval)) != 0)
+        fprintf(ERRFP, "Warning: Can't set recv() timeout\n");
     /* Set send timeout value */
-    setsockopt(* sock_fd, SOL_SOCKET, SO_SNDTIMEO, (const void *)(& tv), sizeof(struct timeval));
+    if(setsockopt(* sock_fd, SOL_SOCKET, SO_SNDTIMEO, (const void *)(& tv), sizeof(struct timeval)) != 0)
+        fprintf(ERRFP, "Warning: Can't set recv() timeout\n");
 
     return EXIT_SUCCESS;
 }
@@ -423,7 +425,8 @@ redirect: /* Goto here if 30x received */
         msgcurr = bufend - bufpos;
         if(msgcurr > msgsize)
             msgcurr = msgsize;
-        fwrite(bufpos, sizeof(char), msgcurr, fp);
+        if(fwrite(bufpos, sizeof(char), msgcurr, fp) != (size_t)msgcurr)
+            fprintf(ERRFP, "Warning: Not all bytes was written\n");
     }
 
     memset(buffer, 0, sizeof(char) * NETBUFSIZE);
@@ -439,7 +442,8 @@ redirect: /* Goto here if 30x received */
             return EXIT_FAILURE;
         }
 
-        fwrite(buffer, sizeof(char), recv_count, fp);
+        if(fwrite(buffer, sizeof(char), recv_count, fp) != (size_t)recv_count)
+            fprintf(ERRFP, "Warning: Not all bytes was written\n");
         msgcurr += recv_count;
     }
 

@@ -410,15 +410,18 @@ redirect: /* Goto here if 30x received */
         }
     }
 
+    if(more_verbose) printf("[");
     fp = fopen(filename, "wb"); /* Open result file */
     if(!fp)
     {
+        if(more_verbose) printf("\n\n");
         fprintf(ERRFP, "Error with fopen() on %s\n", filename);
         shutdown(sock_fd, SHUT_RDWR);
         close(sock_fd);
         free(buffer);
         return EXIT_FAILURE;
     }
+    if(more_verbose) printf("O");
 
     if(bufpos != bufend) /* Write content */
     {
@@ -426,7 +429,11 @@ redirect: /* Goto here if 30x received */
         if(msgcurr > msgsize)
             msgcurr = msgsize;
         if(fwrite(bufpos, sizeof(char), msgcurr, fp) != (size_t)msgcurr)
+        {
+            if(more_verbose) printf("\n\n");
             fprintf(ERRFP, "Warning: Not all bytes was written\n");
+        }
+        if(more_verbose) printf("W");
     }
 
     memset(buffer, 0, sizeof(char) * NETBUFSIZE);
@@ -441,15 +448,21 @@ redirect: /* Goto here if 30x received */
             free(buffer);
             return EXIT_FAILURE;
         }
+        if(more_verbose) printf("R");
 
         if(fwrite(buffer, sizeof(char), recv_count, fp) != (size_t)recv_count)
+        {
+            if(more_verbose) printf("\n\n");
             fprintf(ERRFP, "Warning: Not all bytes was written\n");
+        }
+        if(more_verbose) printf("W");
         msgcurr += recv_count;
     }
 
     conn_close(&sock_fd); /* Close connection */
     fclose(fp);
     free(buffer);
+    if(more_verbose) printf("]\n\n");
 
     if(lastmod && set_mtime(filename, lastmod) != EXIT_SUCCESS) /* Set last modification time */
         return EXIT_FAILURE;

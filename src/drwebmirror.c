@@ -291,10 +291,14 @@ repeat5: /* Goto here if checksum mismatch */
     /* Optional files */
     sprintf(buf, "%s/%s", remotedir, "version.lst.lzma");
     download(buf);
+    /* Usually, these files can be downloaded with version.lst */
+    /* Uncomment lines below if something wrong */
+    /*
     sprintf(buf, "%s/%s", remotedir, "drweb32.lst");
     download(buf);
     sprintf(buf, "%s/%s", remotedir, "drweb32.lst.lzma");
     download(buf);
+    */
     sprintf(buf, "%s/%s", remotedir, "drweb32.flg");
     download(buf);
     sprintf(buf, "%s/%s", remotedir, "drweb32.flg.lzma");
@@ -429,10 +433,13 @@ int update7()
 
 repeat7: /* Goto here if hashsum mismatch */
     /* Optional files (WTF???)*/
+    /* Uncomment lines below if something wrong */
+    /*
     sprintf(buf, "%s/%s", remotedir, "repodb.xml");
     download(buf);
     sprintf(buf, "%s/%s", remotedir, "revisions.xml");
     download(buf);
+    */
 
     /* Get versions.xml */
     sprintf(buf, "%s/%s", remotedir, "versions.xml");

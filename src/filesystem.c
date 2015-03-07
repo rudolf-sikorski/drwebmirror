@@ -182,6 +182,18 @@ int exist(const char * filename)
     return 1;
 }
 
+/* Get <filename> size */
+off_t get_size(const char * filename)
+{
+    struct stat st;
+    if(stat(filename, & st) != 0)
+    {
+        fprintf(ERRFP, "Error %d with stat(): %s\n", errno, strerror(errno));
+        return -1;
+    }
+    return st.st_size;
+}
+
 /* Open temp file */
 FILE * fopen_temp(char * filename)
 {

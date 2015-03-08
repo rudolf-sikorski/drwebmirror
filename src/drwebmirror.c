@@ -322,6 +322,7 @@ repeat5: /* Goto here if checksum mismatch */
         {
             char filename[STRBUFSIZE];
             char sha_base[65], sha_real[65];
+            off_t filesize;
             char * beg = buf + 1, * tmp;
             tmp = strchr(beg, '>'); /* if some as "=<w95>spider.vxd, ..." */
             if(tmp) beg = tmp + 1;
@@ -333,6 +334,11 @@ repeat5: /* Goto here if checksum mismatch */
             if(tmp) * tmp = '\0';
             strncpy(sha_base, strchr(buf, ',') + 2, 64);
             sha_base[64] = '\0';
+            tmp = strrchr(buf, ',');
+            if(tmp)
+                sscanf(tmp + 1, "%jd", & filesize);
+            else
+                filesize = -1;
 
             status = download_check(filename, sha_base, sha_real, & sha256sum, "SHA256");
             if(status == DL_TRY_AGAIN && counter_global < MAX_REPEAT) /* Try again */
@@ -346,6 +352,15 @@ repeat5: /* Goto here if checksum mismatch */
             {
                 fclose(fp);
                 return EXIT_FAILURE;
+            }
+            if(!check_size(filename, filesize)) /* Wrong size */
+            {
+                fclose(fp);
+                if(counter_global >= MAX_REPEAT)
+                    return EXIT_FAILURE;
+                counter_global++;
+                sleep(REPEAT_SLEEP);
+                goto repeat5; /* Yes, it is goto. Sorry, Dijkstra... */
             }
 
             sprintf(buf, "%s.lzma", filename); /* Also get lzma file, if exist */
@@ -373,6 +388,15 @@ repeat5: /* Goto here if checksum mismatch */
                 {
                     fclose(fp);
                     return EXIT_FAILURE;
+                }
+                else if(!check_size_lzma(buf, filesize)) /* Wrong size */
+                {
+                    fclose(fp);
+                    if(counter_global >= MAX_REPEAT)
+                        return EXIT_FAILURE;
+                    counter_global++;
+                    sleep(REPEAT_SLEEP);
+                    goto repeat5; /* Yes, it is goto. Sorry, Dijkstra... */
                 }
             }
         }

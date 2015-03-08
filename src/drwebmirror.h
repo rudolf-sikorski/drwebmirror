@@ -22,6 +22,7 @@
 
 /* Begin of custom defines block */
 #define  PROG_VERSION   "1.5"
+#define  LOCKFILE       "drwebmirror.lock"
 #define  DEF_USERID     "0117974833"
 #define  DEF_MD5SUM     "c41fca5271008eb5f94d308b99a896a7"
 #define  DEF_SERVER     "update.drweb.com"
@@ -34,6 +35,7 @@
 #define  STRBUFSIZE     1024
 #define  MODE_DIR       0755
 #define  MODE_FILE      0644
+#define  MODE_LOCKFILE  0600
 #define  ERRFP          stdout
 /* End of custom defines block */
 
@@ -129,6 +131,10 @@ int exist(const char * filename);
 int check_size(const char * filename, off_t filesize);
 /* Open temp file */
 FILE * fopen_temp(char * filename);
+/* Lock file */
+int do_lock();
+/* Unlock file */
+int do_unlock();
 
 /* Checksum */
 /* Calculate MD5 sum of file <filename> */

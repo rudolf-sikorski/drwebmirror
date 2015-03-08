@@ -1,3 +1,11 @@
+[v1.6] - 09 Mar 2015
+* Added support of DrWeb LiveDisk
+* Disabled downloading some unneeded files
+* Added checking size of files for v5, v7 and vA
+* Changed autodetect to v5 by default
+* Added locks
+* Added auto-disabling fast mode if something wrong
+
 [v1.5] - 07 Feb 2015
 * Fixed some bugs and memory leaks
 

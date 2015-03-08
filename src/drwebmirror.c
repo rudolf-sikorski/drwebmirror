@@ -132,6 +132,9 @@ int update4()
         cache4();
 
 repeat4: /* Goto here if checksum mismatch */
+    if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
+        use_fast = 0;
+
     sprintf(buf, "%s/%s", remotedir, "drweb32.lst");
     status = download(buf);
     if(!DL_SUCCESS(status))
@@ -284,6 +287,9 @@ int update5()
         cache5();
 
 repeat5: /* Goto here if checksum mismatch */
+    if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
+        use_fast = 0;
+
     sprintf(buf, "%s/%s", remotedir, "version.lst");
     status = download(buf);
     if(!DL_SUCCESS(status))
@@ -432,6 +438,9 @@ int update7()
     }
 
 repeat7: /* Goto here if hashsum mismatch */
+    if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
+        use_fast = 0;
+
     /* Optional files (WTF???)*/
     /* Uncomment lines below if something wrong */
     /*
@@ -612,6 +621,9 @@ int updateA()
         cacheA(real_dir);
 
 repeatA: /* Goto here if checksum mismatch */
+    if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
+        use_fast = 0;
+
     status = download(remotedir);
     if(!DL_SUCCESS(status))
         return EXIT_FAILURE;

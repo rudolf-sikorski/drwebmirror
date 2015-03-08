@@ -497,7 +497,7 @@ int download(const char * filename)
 int download_check(const char * filename, const char * checksum_base, char * checksum_real,
                    int (* checksum_func)(const char *, char *), const char * checksum_desc)
 {
-    if(tree && exist(filename)) /* Using fast check */
+    if(use_fast && tree && exist(filename)) /* Using fast check */
     {
         const char * checksum_tree = avl_hash(tree, filename);
         if(checksum_tree)
@@ -508,7 +508,7 @@ int download_check(const char * filename, const char * checksum_base, char * che
             if(strcmp(checksum_base, checksum_real) == 0)
             {
                 if(verbose)
-                    printf("[OK]\n");
+                    printf("[LIKELY]\n");
                 return DL_EXIST;
             }
             else if(verbose)

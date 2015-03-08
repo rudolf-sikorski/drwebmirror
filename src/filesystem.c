@@ -194,6 +194,22 @@ off_t get_size(const char * filename)
     return st.st_size;
 }
 
+/* Compare size of <filename> with <filesize> */
+int check_size(const char * filename, off_t filesize)
+{
+    if(verbose)
+        printf("Checking size of %s ", filename);
+    if(filesize == get_size(filename))
+    {
+        if(verbose)
+            printf("[OK]\n");
+        return 1;
+    }
+    else if(verbose)
+        printf("[NOT OK]\n");
+    return 0;
+}
+
 /* Open temp file */
 FILE * fopen_temp(char * filename)
 {

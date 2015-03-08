@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -153,4 +153,51 @@ int decompress_lzma(FILE * input, FILE * output)
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
+}
+
+/* Get size of LZMA archive <filename> content */
+off_t get_size_lzma(const char * filename)
+{
+    CFileSeqInStream inStream;
+    UInt64 unpackSize = 0;
+    int i;
+    unsigned char header[LZMA_PROPS_SIZE + 8];
+
+    if(!filename)
+        return -1;
+
+    FileSeqInStream_CreateVTable(& inStream);
+    File_Construct(& inStream.file);
+    inStream.file.file = fopen(filename, "rb");
+
+    if(!inStream.file.file)
+        return -1;
+
+    if(SeqInStream_Read(& inStream.s, header, sizeof(header)) != 0)
+    {
+        fclose(inStream.file.file);
+        return -1;
+    }
+
+    for (i = 0; i < 8; i++)
+        unpackSize += (UInt64)header[LZMA_PROPS_SIZE + i] << (i * 8);
+
+    fclose(inStream.file.file);
+    return (off_t)unpackSize;
+}
+
+/* Compare size of LZMA archive <filename> content with <filesize> */
+int check_size_lzma(const char * filename, off_t filesize)
+{
+    if(verbose)
+        printf("Checking size of %s ", filename);
+    if(filesize == get_size_lzma(filename))
+    {
+        if(verbose)
+            printf("[LIKELY]\n");
+        return 1;
+    }
+    else if(verbose)
+        printf("[NOT OK]\n");
+    return 0;
 }

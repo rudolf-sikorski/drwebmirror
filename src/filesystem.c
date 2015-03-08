@@ -25,6 +25,8 @@
 
 /* Lock file descriptor */
 int lockfd;
+/* Lokfile name */
+char lockfile[384];
 
 /* Set modification time <mtime> to file <filename> */
 int set_mtime(const char * filename, const time_t mtime)
@@ -271,26 +273,34 @@ int do_lock()
     memset(& fl, 0, sizeof(struct flock));
     fl.l_whence = SEEK_SET;
     fl.l_type = F_WRLCK | F_RDLCK;
+    snprintf(lockfile, sizeof(lockfile) - 1, "%s/%s", remotedir, LOCKFILENAME);
+    lockfd = 0;
 
     /* Open */
-    if(verbose) printf("Opening lock file %s\n", LOCKFILE);
-    if(exist(LOCKFILE) || (lockfd = open(LOCKFILE, O_RDWR | O_CREAT | O_EXCL, MODE_LOCKFILE)) < 0)
+    if(verbose) printf("Opening lock file\n");
+    if(exist(lockfile) || (lockfd = open(lockfile, O_RDWR | O_CREAT | O_EXCL, MODE_LOCKFILE)) < 0)
     {
-        fprintf(ERRFP, "Warning: Error %d with open() %s: %s\n", errno, LOCKFILE, strerror(errno));
-        use_fast = 0;
-        fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
-        if((lockfd = open(LOCKFILE, O_RDWR | O_CREAT, MODE_LOCKFILE)) < 0)
+        if(lockfd < 0)
+            fprintf(ERRFP, "Warning: Error %d with open(): %s\n", errno, strerror(errno));
+        else
+            fprintf(ERRFP, "Warning: Lock file already exists\n");
+        if(use_fast)
         {
-            fprintf(ERRFP, "Error: Error %d with open() %s: %s\n", errno, LOCKFILE, strerror(errno));
+            use_fast = 0;
+            fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+        }
+        if((lockfd = open(lockfile, O_RDWR | O_CREAT, MODE_LOCKFILE)) < 0)
+        {
+            fprintf(ERRFP, "Error: Error %d with open(): %s\n", errno, strerror(errno));
             return EXIT_FAILURE;
         }
     }
 
     /* Lock */
-    if(verbose) printf("Locking lock file %s\n", LOCKFILE);
+    if(verbose) printf("Locking lock file\n");
     if(fcntl(lockfd, F_SETLK, & fl) < 0)
     {
-        fprintf(ERRFP, "Error: Error %d with fcntl() %s: %s\n", errno, LOCKFILE, strerror(errno));
+        fprintf(ERRFP, "Error: Error %d with fcntl(): %s\n", errno, strerror(errno));
         close(lockfd);
         return EXIT_FAILURE;
     }
@@ -308,10 +318,10 @@ int do_unlock()
     fl.l_type = F_UNLCK;
 
     /* Unock */
-    if(verbose) printf("Unlocking lock file %s\n", LOCKFILE);
+    if(verbose) printf("Unlocking lock file\n");
     if(fcntl(lockfd, F_SETLK, & fl) < 0)
     {
-        fprintf(ERRFP, "Error: Error %d with fcntl() %s: %s\n", errno, LOCKFILE, strerror(errno));
+        fprintf(ERRFP, "Error: Error %d with fcntl(): %s\n", errno, strerror(errno));
         close(lockfd);
         return EXIT_FAILURE;
     }

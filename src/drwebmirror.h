@@ -22,7 +22,7 @@
 
 /* Begin of custom defines block */
 #define  PROG_VERSION   "1.5"
-#define  LOCKFILE       "drwebmirror.lock"
+#define  LOCKFILENAME   "drwebmirror.lock"
 #define  DEF_USERID     "0117974833"
 #define  DEF_MD5SUM     "c41fca5271008eb5f94d308b99a896a7"
 #define  DEF_SERVER     "update.drweb.com"
@@ -78,6 +78,9 @@ extern int8_t use_android;
 extern avl_node * tree;
 /* Flag of use fast mode */
 extern int8_t use_fast;
+
+/* Lokfile name */
+extern char lockfile[384];
 
 /* Common */
 /* Get system timezone */

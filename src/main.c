@@ -511,6 +511,9 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
+    if(do_lock() != EXIT_SUCCESS)
+        return EXIT_FAILURE;
+
     printf("---------- Update bases (v%c) ----------\n", proto);
     printf("Date:  %s\n", time3);
     printf("From:  http://%s:%u/%s\n", servername, (unsigned)serverport, remotedir);
@@ -549,6 +552,7 @@ int main(int argc, char * argv[])
     if(status != EXIT_SUCCESS)
     {
         printf("FAILED.\n");
+        do_unlock();
         return status;
     }
     time_exiec = difftime(time(NULL), time1);
@@ -572,5 +576,13 @@ int main(int argc, char * argv[])
         printf("%u sec.\n", s);
     }
 
+    if(do_unlock() != EXIT_SUCCESS)
+        return EXIT_FAILURE;
+    if(verbose) printf("Removing lock file\n");
+    if(remove(lockfile) != 0)
+    {
+        fprintf(ERRFP, "Error: Error %d with remove() %s: %s\n", errno, lockfile, strerror(errno));
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }

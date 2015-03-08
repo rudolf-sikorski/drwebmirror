@@ -147,11 +147,16 @@ void detect_useragent(const char * dir)
 /* Autodetect update protocol */
 char detect_proto(const char * dir)
 {
+    if(strncmp(dir, "444/", strlen("444/")) == 0 ||
+       strncmp(dir, "433/", strlen("433/")) == 0 ||
+       strncmp(dir, "windows", strlen("windows")) == 0 ||
+       strncmp(dir, "servers/433/windows", strlen("servers/433/windows")) == 0)
+        return '4';
     if(strncmp(dir, "xmlzone/", strlen("xmlzone/")) == 0)
         return '7';
     if(strncmp(dir, "android/", strlen("android/")) == 0)
         return 'A';
-    return '4';
+    return '5';
 }
 
 /* Main function */

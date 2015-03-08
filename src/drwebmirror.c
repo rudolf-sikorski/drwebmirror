@@ -322,7 +322,7 @@ repeat5: /* Goto here if checksum mismatch */
         {
             char filename[STRBUFSIZE];
             char sha_base[65], sha_real[65];
-            off_t filesize;
+            off_t filesize = -1;
             char * beg = buf + 1, * tmp;
             tmp = strchr(beg, '>'); /* if some as "=<w95>spider.vxd, ..." */
             if(tmp) beg = tmp + 1;
@@ -337,8 +337,6 @@ repeat5: /* Goto here if checksum mismatch */
             tmp = strrchr(buf, ',');
             if(tmp)
                 sscanf(tmp + 1, "%jd", & filesize);
-            else
-                filesize = -1;
 
             status = download_check(filename, sha_base, sha_real, & sha256sum, "SHA256");
             if(status == DL_TRY_AGAIN && counter_global < MAX_REPEAT) /* Try again */
@@ -353,7 +351,7 @@ repeat5: /* Goto here if checksum mismatch */
                 fclose(fp);
                 return EXIT_FAILURE;
             }
-            if(!check_size(filename, filesize)) /* Wrong size */
+            if(filesize >= 0 && !check_size(filename, filesize)) /* Wrong size */
             {
                 fclose(fp);
                 if(counter_global >= MAX_REPEAT)
@@ -389,7 +387,7 @@ repeat5: /* Goto here if checksum mismatch */
                     fclose(fp);
                     return EXIT_FAILURE;
                 }
-                else if(!check_size_lzma(buf, filesize)) /* Wrong size */
+                else if(filesize >= 0 && !check_size_lzma(buf, filesize)) /* Wrong size */
                 {
                     fclose(fp);
                     if(counter_global >= MAX_REPEAT)
@@ -493,6 +491,8 @@ repeat7: /* Goto here if hashsum mismatch */
             char real_hash[65];
             char filename[STRBUFSIZE];
             int8_t is_xml = 0;
+            off_t filesize = -1;
+            char * tmpchr;
 
             if(strstr(buf, "<xml") != NULL) is_xml = 1;
 
@@ -500,6 +500,8 @@ repeat7: /* Goto here if hashsum mismatch */
             base_hash[64] = '\0';
             sprintf(filename, "%s/%s", remotedir, strstr(buf, "name=\"") + 6);
             * strchr(filename, '\"') = '\0';
+            if((tmpchr = strstr(buf, "size=\"")) != NULL)
+                sscanf(tmpchr + 6, "%jd\"", & filesize);
 
             if(!exist(filename) && make_path_for(filename) != EXIT_SUCCESS) /* If file not exist, check directories and make it if need */
             {
@@ -528,6 +530,15 @@ repeat7: /* Goto here if hashsum mismatch */
                 fclose(fp);
                 return EXIT_FAILURE;
             }
+            if(filesize >= 0 && !check_size(filename, filesize)) /* Wrong size */
+            {
+                fclose(fp);
+                if(counter_global >= MAX_REPEAT)
+                    return EXIT_FAILURE;
+                counter_global++;
+                sleep(REPEAT_SLEEP);
+                goto repeat7; /* Yes, it is goto. Sorry, Dijkstra... */
+            }
 
             if(is_xml) /* Parse this xml file */
             {
@@ -547,11 +558,14 @@ repeat7: /* Goto here if hashsum mismatch */
                     {
                         char xfilename[STRBUFSIZE];
                         int status;
+                        off_t xfilesize = -1;
 
                         strncpy(base_hash, strstr(buf, "hash=\"") + 6, 64);
                         base_hash[64] = '\0';
                         sprintf(xfilename, "%s/%s", directory, strstr(buf, "name=\"") + 6);
                         * strchr(xfilename, '\"') = '\0';
+                        if((tmpchr = strstr(buf, "size=\"")) != NULL)
+                            sscanf(tmpchr + 6, "%jd\"", & xfilesize);
 
                         if(!exist(xfilename) && make_path_for(xfilename) != EXIT_SUCCESS) /* If file not exist, check directories and make it if need */
                         {
@@ -575,6 +589,16 @@ repeat7: /* Goto here if hashsum mismatch */
                             fclose(fp);
                             fclose(xfp);
                             return EXIT_FAILURE;
+                        }
+                        if(xfilesize >= 0 && !check_size(xfilename, xfilesize)) /* Wrong size */
+                        {
+                            fclose(fp);
+                            fclose(xfp);
+                            if(counter_global >= MAX_REPEAT)
+                                return EXIT_FAILURE;
+                            counter_global++;
+                            sleep(REPEAT_SLEEP);
+                            goto repeat7; /* Yes, it is goto. Sorry, Dijkstra... */
                         }
                     }
                 }
@@ -667,7 +691,7 @@ repeatA: /* Goto here if checksum mismatch */
                 char garb[9], md5_base[33], md5_real[33];
                 char filename_base[STRBUFSIZE], filename[STRBUFSIZE];
                 int status;
-                off_t filesize;
+                off_t filesize = -1;
                 uintmax_t filesize_tmp;
 
                 sscanf(buf, "%[^,], %[^,], %jX, %[^,], %[^,], %[^,], %s",
@@ -689,7 +713,7 @@ repeatA: /* Goto here if checksum mismatch */
                     fclose(fp);
                     return EXIT_FAILURE;
                 }
-                if(!check_size(filename, filesize)) /* Wrong size */
+                if(filesize >= 0 && !check_size(filename, filesize)) /* Wrong size */
                 {
                     fclose(fp);
                     if(counter_global >= MAX_REPEAT)

@@ -133,7 +133,10 @@ int update4()
 
 repeat4: /* Goto here if checksum mismatch */
     if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
+    {
         use_fast = 0;
+        fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+    }
 
     sprintf(buf, "%s/%s", remotedir, "drweb32.lst");
     status = download(buf);
@@ -288,7 +291,10 @@ int update5()
 
 repeat5: /* Goto here if checksum mismatch */
     if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
+    {
         use_fast = 0;
+        fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+    }
 
     sprintf(buf, "%s/%s", remotedir, "version.lst");
     status = download(buf);
@@ -461,7 +467,10 @@ int update7()
 
 repeat7: /* Goto here if hashsum mismatch */
     if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
+    {
         use_fast = 0;
+        fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+    }
 
     /* Optional files (WTF???)*/
     /* Uncomment lines below if something wrong */
@@ -670,7 +679,10 @@ int updateA()
 
 repeatA: /* Goto here if checksum mismatch */
     if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
+    {
         use_fast = 0;
+        fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+    }
 
     status = download(remotedir);
     if(!DL_SUCCESS(status))

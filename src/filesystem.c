@@ -267,13 +267,13 @@ FILE * fopen_temp(char * filename)
 }
 
 /* Lock file */
-int do_lock()
+int do_lock(const char * directory)
 {
     struct flock fl;
     memset(& fl, 0, sizeof(struct flock));
     fl.l_whence = SEEK_SET;
     fl.l_type = F_WRLCK | F_RDLCK;
-    snprintf(lockfile, sizeof(lockfile) - 1, "%s/%s", remotedir, LOCKFILENAME);
+    snprintf(lockfile, sizeof(lockfile) - 1, "%s/%s", directory, LOCKFILENAME);
     lockfd = 0;
 
     /* Open */
@@ -316,6 +316,9 @@ int do_unlock()
     memset(& fl, 0, sizeof(struct flock));
     fl.l_whence = SEEK_SET;
     fl.l_type = F_UNLCK;
+
+    if(lockfd < 0)
+        return EXIT_FAILURE;
 
     /* Unock */
     if(verbose) printf("Unlocking lock file\n");

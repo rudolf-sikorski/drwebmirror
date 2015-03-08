@@ -135,7 +135,7 @@ int check_size(const char * filename, off_t filesize);
 /* Open temp file */
 FILE * fopen_temp(char * filename);
 /* Lock file */
-int do_lock();
+int do_lock(const char * directory);
 /* Unlock file */
 int do_unlock();
 

@@ -127,6 +127,8 @@ int update4()
         fprintf(ERRFP, "Error: Can't access to local directory\n");
         return EXIT_FAILURE;
     }
+    if(do_lock(remotedir) != EXIT_SUCCESS)
+        return EXIT_FAILURE;
 
     if(use_fast)
         cache4();
@@ -285,6 +287,8 @@ int update5()
         fprintf(ERRFP, "Error: Can't access to local directory\n");
         return EXIT_FAILURE;
     }
+    if(do_lock(remotedir) != EXIT_SUCCESS)
+        return EXIT_FAILURE;
 
     if(use_fast)
         cache5();
@@ -458,6 +462,8 @@ int update7()
         fprintf(ERRFP, "Error: Can't access to local directory\n");
         return EXIT_FAILURE;
     }
+    if(do_lock(remotedir) != EXIT_SUCCESS)
+        return EXIT_FAILURE;
 
     if(use_fast)
     {
@@ -673,6 +679,8 @@ int updateA()
         fprintf(ERRFP, "Error: Can't access to local directory\n");
         return EXIT_FAILURE;
     }
+    if(do_lock(real_dir) != EXIT_SUCCESS)
+        return EXIT_FAILURE;
 
     if(use_fast)
         cacheA(real_dir);

@@ -516,9 +516,6 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
-    if(do_lock() != EXIT_SUCCESS)
-        return EXIT_FAILURE;
-
     printf("---------- Update bases (v%c) ----------\n", proto);
     printf("Date:  %s\n", time3);
     printf("From:  http://%s:%u/%s\n", servername, (unsigned)serverport, remotedir);

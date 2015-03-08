@@ -643,11 +643,14 @@ repeatA: /* Goto here if checksum mismatch */
                 char garb[9], md5_base[33], md5_real[33];
                 char filename_base[STRBUFSIZE], filename[STRBUFSIZE];
                 int status;
+                off_t filesize;
+                uintmax_t filesize_tmp;
 
-                sscanf(buf, "%[^,], %[^,], %[^,], %[^,], %[^,], %[^,], %s",
-                       garb, garb, garb, md5_base, garb, garb, filename_base);
+                sscanf(buf, "%[^,], %[^,], %jX, %[^,], %[^,], %[^,], %s",
+                       garb, garb, & filesize_tmp, md5_base, garb, garb, filename_base);
                 sprintf(filename, "%s/%s", real_dir, filename_base);
                 to_lowercase(md5_base);
+                filesize = (off_t)filesize_tmp;
 
                 status = download_check(filename, md5_base, md5_real, & md5sum, "MD5");
                 if(status == DL_TRY_AGAIN && counter_global < MAX_REPEAT) /* Try again */
@@ -661,6 +664,15 @@ repeatA: /* Goto here if checksum mismatch */
                 {
                     fclose(fp);
                     return EXIT_FAILURE;
+                }
+                if(!check_size(filename, filesize)) /* Wrong size */
+                {
+                    fclose(fp);
+                    if(counter_global >= MAX_REPEAT)
+                        return EXIT_FAILURE;
+                    counter_global++;
+                    sleep(REPEAT_SLEEP);
+                    goto repeatA; /* Yes, it is goto. Sorry, Dijkstra... */
                 }
             }
         }

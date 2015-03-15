@@ -296,6 +296,8 @@ int do_lock(const char * directory)
         }
     }
 
+/* Cygwin implementation of fcntl() can't work */
+#if !defined(__CYGWIN__)
     /* Lock */
     if(verbose) printf("Locking lock file\n");
     if(fcntl(lockfd, F_SETLK, & fl) < 0)
@@ -304,6 +306,7 @@ int do_lock(const char * directory)
         close(lockfd);
         return EXIT_FAILURE;
     }
+#endif
 
     /* All OK */
     return EXIT_SUCCESS;
@@ -320,6 +323,8 @@ int do_unlock()
     if(lockfd < 0)
         return EXIT_FAILURE;
 
+/* Cygwin implementation of fcntl() can't work */
+#if !defined(__CYGWIN__)
     /* Unock */
     if(verbose) printf("Unlocking lock file\n");
     if(fcntl(lockfd, F_SETLK, & fl) < 0)
@@ -328,6 +333,7 @@ int do_unlock()
         close(lockfd);
         return EXIT_FAILURE;
     }
+#endif
 
     /* All OK */
     close(lockfd);

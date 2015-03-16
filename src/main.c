@@ -87,6 +87,7 @@ void show_help()
     printf("| DrWeb 5.0 Security Space for Windows | 500/sspace/windows           | 4/5 |\n");
     printf("| DrWeb 5.0 for Windows Server         | 500/servers/windows          | 4/5 |\n");
     printf("|                                      | 500/servers/nt4srv/windows   | 4/5 |\n");
+    printf("| DrWebWCL 5.0                         | 500/winconsole/windows       | 4/5 |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
     printf("| DrWeb 6.0 for Windows                | x86/600/av/windows           | 4/5 |\n");
     printf("|                                      | x64/600/av/windows           | 4/5 |\n");

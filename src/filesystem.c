@@ -302,9 +302,18 @@ int do_lock(const char * directory)
     if(verbose) printf("Locking lock file\n");
     if(fcntl(lockfd, F_SETLK, & fl) < 0)
     {
-        fprintf(ERRFP, "Error: Error %d with fcntl(): %s\n", errno, strerror(errno));
-        close(lockfd);
-        return EXIT_FAILURE;
+        if(errno == EAGAIN || errno == EACCES)
+        {
+            fprintf(ERRFP, "Error: Error %d with fcntl(): %s\n", errno, strerror(errno));
+            close(lockfd);
+            return EXIT_FAILURE;
+        }
+        else
+        {
+            fprintf(ERRFP, "Warning: Error %d with fcntl(): %s\n", errno, strerror(errno));
+            close(lockfd);
+            lockfd = -1;
+        }
     }
 #endif
 
@@ -321,11 +330,11 @@ int do_unlock()
     fl.l_type = F_UNLCK;
 
     if(lockfd < 0)
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
 
 /* Cygwin implementation of fcntl() can't work */
 #if !defined(__CYGWIN__)
-    /* Unock */
+    /* Unlock */
     if(verbose) printf("Unlocking lock file\n");
     if(fcntl(lockfd, F_SETLK, & fl) < 0)
     {

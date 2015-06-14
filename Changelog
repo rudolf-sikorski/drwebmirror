@@ -1,3 +1,6 @@
+[v1.8] - 14 Jun 2015
+* Added support of DrWeb 11
+
 [v1.7] - 15 May 2015
 * Added support of DrWebWCL and DrWeb Beta
 * Improvements in lock algorithm

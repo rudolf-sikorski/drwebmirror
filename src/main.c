@@ -118,6 +118,9 @@ void show_help()
     printf("| DrWeb 10.0 for Windows               | xmlzone/release/1000/windows |  7  |\n");
     printf("| DrWeb 10.0 Beta for Windows          | xmlzone/beta/1000/windows    |  7  |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
+    printf("| DrWeb 11.0 for Windows               | xmlzone/release/1100/windows |  7  |\n");
+    printf("| DrWeb 11.0 Beta for Windows          | xmlzone/beta/1100/windows    |  7  |\n");
+    printf("|--------------------------------------|------------------------------|-----|\n");
     printf("| DrWeb 6.0-8.0 for Android            | android/6.1/drwebce.lst      |  A  |\n");
     printf("| DrWeb 9.0 for Android                | android/9/version.lst        |  A  |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");

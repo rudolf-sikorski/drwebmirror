@@ -39,6 +39,16 @@
 #define  ERRFP          stdout
 /* End of custom defines block */
 
+/* Cygwin implementation of file mode bits is ugly */
+#if defined(__CYGWIN__)
+#undef   MODE_DIR
+#define  MODE_DIR       0777
+#undef   MODE_FILE
+#define  MODE_FILE      0777
+#undef   MODE_LOCKFILE
+#define  MODE_LOCKFILE  0777
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

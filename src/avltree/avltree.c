@@ -2,7 +2,7 @@
  * File: avltree.cpp
  * Description: Simple AVL Tree
  * Author: Rudolf Sikorski <rudolf.sikorski@freenet.de>
- * Revision: Fri, 06 Feb 2015 00:16:00 +0000
+ * Revision: Fri, 11 Sep 2015 18:45:00 +0000
  * License: Public Domain
  */
 #include <stdlib.h>
@@ -21,28 +21,28 @@ avl_node * new_node(const avl_key * key)
 }
 
 /* Comparison function "less" */
-int8_t less(const avl_key * key_left, const avl_key * key_right)
+avl_s_t less(const avl_key * key_left, const avl_key * key_right)
 {
     return strcmp(key_left->name, key_right->name) < 0 ? 1 : 0;
 }
 
 /* Height of subtree with root <root> */
-uint8_t height(const avl_node * root)
+avl_u_t height(const avl_node * root)
 {
     return root ? root->height : 0;
 }
 
 /* Balance factor of subtree with root <root> */
-int8_t balance_factor(const avl_node * root)
+avl_s_t balance_factor(const avl_node * root)
 {
-    return (int8_t)(height(root->right) - height(root->left));
+    return (avl_s_t)height(root->right) - (avl_s_t)height(root->left);
 }
 
 /* Correction tree height after turns */
 void fix_height(avl_node * root)
 {
-    uint8_t hl = height(root->left);
-    uint8_t hr = height(root->right);
+    avl_u_t hl = height(root->left);
+    avl_u_t hr = height(root->right);
     root->height = (hl > hr ? hl : hr) + 1;
 }
 

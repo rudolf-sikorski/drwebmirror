@@ -2,13 +2,16 @@
  * File: avltree.h
  * Description: Simple AVL Tree
  * Author: Rudolf Sikorski <rudolf.sikorski@freenet.de>
- * Revision: Fri, 06 Feb 2015 00:16:00 +0000
+ * Revision: Fri, 11 Sep 2015 18:45:00 +0000
  * License: Public Domain
  */
 #ifndef AVLTREE_H
 #define AVLTREE_H
 
-#include <stdint.h>
+/* Type for subtree height */
+typedef unsigned char avl_u_t;
+/* Type for difference between two subtree height */
+typedef signed short  avl_s_t;
 
 /* Key, <name> is comparable value */
 typedef struct
@@ -21,7 +24,7 @@ typedef struct
 typedef struct avl_node_
 {
     avl_key key;                /* Key */
-    uint8_t height;             /* Subree height */
+    avl_u_t height;             /* Subree height */
     struct avl_node_ * left;    /* Left subtree */
     struct avl_node_ * right;   /* Right subtree */
 } avl_node;

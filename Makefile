@@ -23,17 +23,22 @@ OBJECTS = $(SOURCES:.c=.o)
 
 all: $(SOURCES) $(EXECUTABLE)
 
-.PHONY: clean install
+.PHONY: clean distclean install uninstall
 
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJECTS) $(EXECUTABLE)
+	rm -f $(OBJECTS)
 
-install:
+distclean: clean
+	rm -f $(EXECUTABLE)
+
+install: all
 	install -Dm 0755 $(EXECUTABLE) $(DESTDIR)$(PREFIX)/bin/$(EXECUTABLE)
 
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/bin/$(EXECUTABLE)

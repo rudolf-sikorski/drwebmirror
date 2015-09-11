@@ -45,7 +45,7 @@ void show_help()
 {
     printf("DrWebMirror %s, tool for create mirror of DrWeb update server.\n", PROG_VERSION);
     printf("Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>\n");
-    printf("Homepage: http://fami-net.dlinkddns.com/osp/drwebmirror\n\n");
+    printf("Homepage: https://fami.codefreak.ru/osp/drwebmirror\n\n");
     printf("Usage: drwebmirror <options>\n");
     printf("\n");
     printf("Options:\n");

@@ -121,6 +121,7 @@ int update4()
     FILE * fp;
     int8_t flag;
     int counter_global = 0, status;
+    char main_hash_old[65], main_hash_new[65];
 
     if(make_path(remotedir) != EXIT_SUCCESS) /* Make all needed directory */
     {
@@ -131,7 +132,18 @@ int update4()
         return EXIT_FAILURE;
 
     if(use_fast)
-        cache4();
+    {
+        sprintf(buf, "%s/%s", remotedir, "drweb32.lst");
+        status = sha256sum(buf, main_hash_old);
+        if(status != EXIT_SUCCESS)
+        {
+            use_fast = 0;
+            fprintf(ERRFP, "Warning: drweb32.lst was not found\n");
+            fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+        }
+        else
+            cache4();
+    }
 
 repeat4: /* Goto here if checksum mismatch */
     if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
@@ -144,6 +156,12 @@ repeat4: /* Goto here if checksum mismatch */
     status = download(buf);
     if(!DL_SUCCESS(status))
         return EXIT_FAILURE;
+    if(use_fast)
+    {
+        sha256sum(buf, main_hash_new);
+        if(strcmp(main_hash_old, main_hash_new) == 0)
+            return EXIT_SUCCESS;
+    }
     /* Optional files */
     sprintf(buf, "%s/%s", remotedir, "drweb32.lst.lzma");
     download(buf);
@@ -281,6 +299,7 @@ int update5()
     FILE * fp;
     int8_t flag;
     int counter_global = 0, status;
+    char main_hash_old[65], main_hash_new[65];
 
     if(make_path(remotedir) != EXIT_SUCCESS) /* Make all needed directory */
     {
@@ -291,7 +310,18 @@ int update5()
         return EXIT_FAILURE;
 
     if(use_fast)
-        cache5();
+    {
+        sprintf(buf, "%s/%s", remotedir, "version.lst");
+        status = sha256sum(buf, main_hash_old);
+        if(status != EXIT_SUCCESS)
+        {
+            use_fast = 0;
+            fprintf(ERRFP, "Warning: version.lst was not found\n");
+            fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+        }
+        else
+            cache5();
+    }
 
 repeat5: /* Goto here if checksum mismatch */
     if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
@@ -304,6 +334,12 @@ repeat5: /* Goto here if checksum mismatch */
     status = download(buf);
     if(!DL_SUCCESS(status))
         return EXIT_FAILURE;
+    if(use_fast)
+    {
+        sha256sum(buf, main_hash_new);
+        if(strcmp(main_hash_old, main_hash_new) == 0)
+            return EXIT_SUCCESS;
+    }
     /* Optional files */
     sprintf(buf, "%s/%s", remotedir, "version.lst.lzma");
     download(buf);

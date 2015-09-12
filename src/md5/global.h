@@ -1,6 +1,7 @@
 #ifndef GLOBAL_H_INCLUDED
 #define GLOBAL_H_INCLUDED
 #include <stdint.h>
+#include <string.h>
 
 /* GLOBAL.H - RSAREF types and constants
  */

@@ -113,7 +113,6 @@ void show_help()
     printf("| DrWeb 8.0 for Windows Server         | xmlzone/release/800/servers  |  7  |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
     printf("| DrWeb 9.0 for Windows                | xmlzone/release/900/windows  |  7  |\n");
-    printf("| DrWeb 9.0 Beta for Windows           | xmlzone/beta/900/windows     |  7  |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
     printf("| DrWeb 10.0 for Windows               | xmlzone/release/1000/windows |  7  |\n");
     printf("| DrWeb 10.0 Beta for Windows          | xmlzone/beta/1000/windows    |  7  |\n");

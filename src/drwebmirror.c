@@ -160,7 +160,11 @@ repeat4: /* Goto here if checksum mismatch */
     {
         sha256sum(buf, main_hash_new);
         if(strcmp(main_hash_old, main_hash_new) == 0)
+        {
+            if(verbose)
+                printf("Nothing was changed\n");
             return EXIT_SUCCESS;
+        }
     }
     /* Optional files */
     sprintf(buf, "%s/%s", remotedir, "drweb32.lst.lzma");
@@ -338,7 +342,11 @@ repeat5: /* Goto here if checksum mismatch */
     {
         sha256sum(buf, main_hash_new);
         if(strcmp(main_hash_old, main_hash_new) == 0)
+        {
+            if(verbose)
+                printf("Nothing was changed\n");
             return EXIT_SUCCESS;
+        }
     }
     /* Optional files */
     sprintf(buf, "%s/%s", remotedir, "version.lst.lzma");
@@ -492,6 +500,7 @@ int update7()
     int8_t flag;
     int counter_global = 0;
     int status;
+    char main_hash_old[65], main_hash_new[65];
 
     if(make_path(remotedir) != EXIT_SUCCESS)
     {
@@ -504,7 +513,15 @@ int update7()
     if(use_fast)
     {
         sprintf(buf, "%s/%s", remotedir, "versions.xml");
-        cache7(buf, remotedir);
+        status = sha256sum(buf, main_hash_old);
+        if(status != EXIT_SUCCESS)
+        {
+            use_fast = 0;
+            fprintf(ERRFP, "Warning: versions.xml was not found\n");
+            fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+        }
+        else
+            cache7(buf, remotedir);
     }
 
 repeat7: /* Goto here if hashsum mismatch */
@@ -528,6 +545,16 @@ repeat7: /* Goto here if hashsum mismatch */
     status = download(buf);
     if(!DL_SUCCESS(status))
         return EXIT_FAILURE;
+    if(use_fast)
+    {
+        sha256sum(buf, main_hash_new);
+        if(strcmp(main_hash_old, main_hash_new) == 0)
+        {
+            if(verbose)
+                printf("Nothing was changed\n");
+            return EXIT_SUCCESS;
+        }
+    }
 
     /* Parse versions.xml */
     fp = fopen(buf, "r");
@@ -706,6 +733,7 @@ int updateA()
     int8_t flag, flag_files;
     int counter_global = 0;
     int status;
+    char main_hash_old[65], main_hash_new[65];
 
     strncpy(real_dir, remotedir, sizeof(real_dir) - 1);
     real_dir[sizeof(real_dir) - 1] = '\0';
@@ -719,7 +747,22 @@ int updateA()
         return EXIT_FAILURE;
 
     if(use_fast)
-        cacheA(real_dir);
+    {
+        status = sha256sum(remotedir, main_hash_old);
+        if(status != EXIT_SUCCESS)
+        {
+            char * name = strrchr(remotedir, '/');
+            if(name)
+                name++;
+            else
+                name = remotedir;
+            use_fast = 0;
+            fprintf(ERRFP, "Warning: %s was not found\n", name);
+            fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+        }
+        else
+            cacheA(real_dir);
+    }
 
 repeatA: /* Goto here if checksum mismatch */
     if(counter_global > 0 && use_fast) /* Incomplete update will lead to integrity violations */
@@ -731,6 +774,16 @@ repeatA: /* Goto here if checksum mismatch */
     status = download(remotedir);
     if(!DL_SUCCESS(status))
         return EXIT_FAILURE;
+    if(use_fast)
+    {
+        sha256sum(remotedir, main_hash_new);
+        if(strcmp(main_hash_old, main_hash_new) == 0)
+        {
+            if(verbose)
+                printf("Nothing was changed\n");
+            return EXIT_SUCCESS;
+        }
+    }
     fp = fopen(remotedir, "r");
     flag = 1;
     flag_files = 0;

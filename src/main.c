@@ -123,6 +123,7 @@ void show_help()
     printf("|--------------------------------------|------------------------------|-----|\n");
     printf("| DrWeb 6.0-8.0 for Android            | android/6.1/drwebce.lst      |  A  |\n");
     printf("| DrWeb 9.0 for Android                | android/9/version.lst        |  A  |\n");
+    printf("| DrWeb 10.0 for Android               | android/10/version.lst       |  A  |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
 }
 
@@ -145,6 +146,9 @@ void detect_useragent(const char * dir)
         /* DrWeb Light 9.00.2(0), Android 2.3.7 */
         else if(strcmp(dir, "android/9/version.lst") == 0)
             strncpy(useragent, "Dr.Web anti-virus Light Version: 9.00.2.7039 Device model: LG-P500 Firmware version: 2.3.7", sizeof(useragent) - 1);
+        /* DrWeb Security Space 10.0.3(1), Android 4.4.2 */
+        else if(strcmp(dir, "android/10/version.lst") == 0)
+            strncpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 10.0.3.14009 Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent) - 1);
     }
     if(useragent[0] == '\0')
         strncpy(useragent, DEF_USERAGENT, sizeof(useragent) - 1);

@@ -446,7 +446,7 @@ int main(int argc, char * argv[])
         else if(use_android == 0)
         {
 #if defined(DEF_USERID) && defined(DEF_MD5SUM)
-            fprintf(ERRFP, "Warning: No key file or UserID & MD5 specified, using default key value.\n");
+            fprintf(ERRFP, "Warning: No key file or UserID & MD5 specified, default key value will be used.\n");
             strncpy(key_userid, DEF_USERID, sizeof(key_userid) - 1);
             strncpy(key_md5sum, DEF_MD5SUM, sizeof(key_md5sum) - 1);
 #else

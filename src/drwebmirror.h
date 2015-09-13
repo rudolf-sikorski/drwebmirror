@@ -140,6 +140,8 @@ int make_path_for(char * filename);
 int delete_files(const char * directory, const char * mask);
 /* Check <filename> exist */
 int exist(const char * filename);
+/* Get <filename> size */
+off_t get_size(const char * filename);
 /* Compare size of <filename> with <filesize> */
 int check_size(const char * filename, off_t filesize);
 /* Open temp file */

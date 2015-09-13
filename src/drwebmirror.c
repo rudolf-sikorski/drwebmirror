@@ -122,6 +122,7 @@ int update4()
     int8_t flag;
     int counter_global = 0, status;
     char main_hash_old[65], main_hash_new[65];
+    off_t main_size_old = 0, main_size_new = 0;
 
     if(make_path(remotedir) != EXIT_SUCCESS) /* Make all needed directory */
     {
@@ -142,7 +143,10 @@ int update4()
             fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
         }
         else
+        {
+            main_size_old = get_size(buf);
             cache4();
+        }
     }
 
 repeat4: /* Goto here if checksum mismatch */
@@ -158,12 +162,16 @@ repeat4: /* Goto here if checksum mismatch */
         return EXIT_FAILURE;
     if(use_fast)
     {
-        sha256sum(buf, main_hash_new);
-        if(strcmp(main_hash_old, main_hash_new) == 0)
+        main_size_new = get_size(buf);
+        if(main_size_new == main_size_old)
         {
-            if(verbose)
-                printf("Nothing was changed\n");
-            return EXIT_SUCCESS;
+            sha256sum(buf, main_hash_new);
+            if(strcmp(main_hash_old, main_hash_new) == 0)
+            {
+                if(verbose)
+                    printf("Nothing was changed\n");
+                return EXIT_SUCCESS;
+            }
         }
     }
     /* Optional files */
@@ -304,6 +312,7 @@ int update5()
     int8_t flag;
     int counter_global = 0, status;
     char main_hash_old[65], main_hash_new[65];
+    off_t main_size_old = 0, main_size_new = 0;
 
     if(make_path(remotedir) != EXIT_SUCCESS) /* Make all needed directory */
     {
@@ -324,7 +333,10 @@ int update5()
             fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
         }
         else
+        {
+            main_size_old = get_size(buf);
             cache5();
+        }
     }
 
 repeat5: /* Goto here if checksum mismatch */
@@ -340,12 +352,16 @@ repeat5: /* Goto here if checksum mismatch */
         return EXIT_FAILURE;
     if(use_fast)
     {
-        sha256sum(buf, main_hash_new);
-        if(strcmp(main_hash_old, main_hash_new) == 0)
+        main_size_new = get_size(buf);
+        if(main_size_new == main_size_old)
         {
-            if(verbose)
-                printf("Nothing was changed\n");
-            return EXIT_SUCCESS;
+            sha256sum(buf, main_hash_new);
+            if(strcmp(main_hash_old, main_hash_new) == 0)
+            {
+                if(verbose)
+                    printf("Nothing was changed\n");
+                return EXIT_SUCCESS;
+            }
         }
     }
     /* Optional files */
@@ -501,6 +517,7 @@ int update7()
     int counter_global = 0;
     int status;
     char main_hash_old[65], main_hash_new[65];
+    off_t main_size_old = 0, main_size_new = 0;
 
     if(make_path(remotedir) != EXIT_SUCCESS)
     {
@@ -521,7 +538,10 @@ int update7()
             fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
         }
         else
+        {
+            main_size_old = get_size(buf);
             cache7(buf, remotedir);
+        }
     }
 
 repeat7: /* Goto here if hashsum mismatch */
@@ -547,12 +567,16 @@ repeat7: /* Goto here if hashsum mismatch */
         return EXIT_FAILURE;
     if(use_fast)
     {
-        sha256sum(buf, main_hash_new);
-        if(strcmp(main_hash_old, main_hash_new) == 0)
+        main_size_new = get_size(buf);
+        if(main_size_new == main_size_old)
         {
-            if(verbose)
-                printf("Nothing was changed\n");
-            return EXIT_SUCCESS;
+            sha256sum(buf, main_hash_new);
+            if(strcmp(main_hash_old, main_hash_new) == 0)
+            {
+                if(verbose)
+                    printf("Nothing was changed\n");
+                return EXIT_SUCCESS;
+            }
         }
     }
 
@@ -734,6 +758,7 @@ int updateA()
     int counter_global = 0;
     int status;
     char main_hash_old[65], main_hash_new[65];
+    off_t main_size_old = 0, main_size_new = 0;
 
     strncpy(real_dir, remotedir, sizeof(real_dir) - 1);
     real_dir[sizeof(real_dir) - 1] = '\0';
@@ -761,7 +786,10 @@ int updateA()
             fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
         }
         else
+        {
+            main_size_old = get_size(remotedir);
             cacheA(real_dir);
+        }
     }
 
 repeatA: /* Goto here if checksum mismatch */
@@ -776,12 +804,16 @@ repeatA: /* Goto here if checksum mismatch */
         return EXIT_FAILURE;
     if(use_fast)
     {
-        sha256sum(remotedir, main_hash_new);
-        if(strcmp(main_hash_old, main_hash_new) == 0)
+        main_size_new = get_size(remotedir);
+        if(main_size_new == main_size_old)
         {
-            if(verbose)
-                printf("Nothing was changed\n");
-            return EXIT_SUCCESS;
+            sha256sum(remotedir, main_hash_new);
+            if(strcmp(main_hash_old, main_hash_new) == 0)
+            {
+                if(verbose)
+                    printf("Nothing was changed\n");
+                return EXIT_SUCCESS;
+            }
         }
     }
     fp = fopen(remotedir, "r");

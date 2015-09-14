@@ -1,3 +1,12 @@
+[v1.9] - 14 Sep 2015
+* Added support of DrWeb 10 for Android
+* Dropped support of DrWeb 9.0 Beta for Windows
+* Improvements in fast mode
+* Improved MD5 Algorithm implementation
+* Fixed file mode bits for Cygwin
+* Updated Makefile
+* Updated links
+
 [v1.8] - 14 Jun 2015
 * Added support of DrWeb 11
 

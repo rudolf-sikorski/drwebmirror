@@ -18,7 +18,12 @@
 */
 
 #include "drwebmirror.h"
+#if !defined(_WIN32)
 #include <signal.h>
+#endif
+#if defined(_WIN32)
+#include <winsock.h>
+#endif
 
 #define OPT_KEYFILE      0x01
 #define OPT_USER         0x02
@@ -127,7 +132,7 @@ void show_help()
 }
 
 /* Show help hint message */
-inline void show_hint()
+void show_hint()
 {
     fprintf(ERRFP, "Try `drwebmirror --help' or `drwebmirror -h' for view help.\n");
 }
@@ -181,15 +186,23 @@ int main(int argc, char * argv[])
     time_t time1;
     struct tm * time2;
     char time3[48];
+#if !defined(_WIN32)
     struct sigaction sigact;
+#endif
     double time_exiec;
     char * inp_user = NULL, * inp_md5 = NULL;
     int status = EXIT_FAILURE;
+#if defined(_WIN32)
+    WSADATA wsa_data;
+    WORD wsa_ver = MAKEWORD(1, 1);
+#endif
 
+#if !defined(_WIN32)
     memset(& sigact, 0, sizeof(struct sigaction));
     sigemptyset(& sigact.sa_mask);
     sigact.sa_handler = sighup_handler;
     sigaction(SIGHUP, & sigact, 0);
+#endif
 
     for(i = 1; i < argc; i++)
     {
@@ -525,6 +538,11 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
+#if defined(_WIN32)
+    memset(& wsa_data, 0, sizeof(WSADATA));
+    WSAStartup(wsa_ver, & wsa_data);
+#endif
+
     printf("---------- Update bases (v%c) ----------\n", proto);
     printf("Date:  %s\n", time3);
     printf("From:  http://%s:%u/%s\n", servername, (unsigned)serverport, remotedir);
@@ -558,6 +576,10 @@ int main(int argc, char * argv[])
         status = updateA();
         break;
     }
+
+#if defined(_WIN32)
+    WSACleanup();
+#endif
 
     if(tree) avl_dealloc(tree);
     if(status != EXIT_SUCCESS)

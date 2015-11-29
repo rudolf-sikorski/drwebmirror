@@ -1,5 +1,5 @@
 CC ?= cc
-CFLAGS ?= -O3 -Wall -Wextra
+CFLAGS ?= -O3 -Wall -Wextra -DNDEBUG
 LDFLAGS ?= -s
 PREFIX ?= /usr/local
 EXECUTABLE = drwebmirror
@@ -26,7 +26,7 @@ all: $(SOURCES) $(EXECUTABLE)
 .PHONY: clean distclean install uninstall
 
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o $@
+	$(CC) $(CFLAGS) $(OBJECTS) $(LDFLAGS) -o $@
 
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@

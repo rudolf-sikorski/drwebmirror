@@ -2,7 +2,7 @@
  * File: avltree.h
  * Description: Simple AVL Tree
  * Author: Rudolf Sikorski <rudolf.sikorski@freenet.de>
- * Revision: Mon, 14 Sep 2015 22:15:00 +0000
+ * Revision: Sun, 29 Nov 2015 12:05:00 +0000
  * License: Public Domain
  */
 #ifndef AVLTREE_H
@@ -39,4 +39,4 @@ const char * avl_hash(const avl_node * root, const char * name);
 /* Delete subtree with root <root> */
 void avl_dealloc(avl_node * root);
 
-#endif // AVLTREE_H
+#endif /* AVLTREE_H */

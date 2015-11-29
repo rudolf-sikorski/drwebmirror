@@ -58,7 +58,11 @@ int make_dir(const char * name)
     struct stat st;
     if(stat(name, & st) != 0) /* Don't exist */
     {
+#if defined(_WIN32)
+        if(mkdir(name) != 0)
+#else
         if(mkdir(name, MODE_DIR) != 0)
+#endif
         {
             fprintf(ERRFP, "Error %d with mkdir(): %s\n", errno, strerror(errno));
             return EXIT_FAILURE;
@@ -225,7 +229,7 @@ FILE * fopen_temp(char * filename)
         tmpnam(filename);
         tmpf = fopen(filename, "wb+");
 
-#if defined(__CYGWIN__)
+#if defined(__CYGWIN__) || defined(_WIN32)
         if(tmpf == NULL) /* In some strange cases with cygwin, tmpnam() return broken path */
         {
             char sb[L_tmpnam];
@@ -269,10 +273,12 @@ FILE * fopen_temp(char * filename)
 /* Lock file */
 int do_lock(const char * directory)
 {
+#if !defined(__CYGWIN__) && !defined(_WIN32)
     struct flock fl;
     memset(& fl, 0, sizeof(struct flock));
     fl.l_whence = SEEK_SET;
     fl.l_type = F_WRLCK | F_RDLCK;
+#endif
     snprintf(lockfile, sizeof(lockfile) - 1, "%s/%s", directory, LOCKFILENAME);
     lockfd = 0;
 
@@ -297,7 +303,7 @@ int do_lock(const char * directory)
     }
 
 /* Cygwin implementation of fcntl() can't work */
-#if !defined(__CYGWIN__)
+#if !defined(__CYGWIN__) && !defined(_WIN32)
     /* Lock */
     if(verbose) printf("Locking lock file\n");
     if(fcntl(lockfd, F_SETLK, & fl) < 0)
@@ -324,16 +330,18 @@ int do_lock(const char * directory)
 /* Unlock file */
 int do_unlock()
 {
+#if !defined(__CYGWIN__) && !defined(_WIN32)
     struct flock fl;
     memset(& fl, 0, sizeof(struct flock));
     fl.l_whence = SEEK_SET;
     fl.l_type = F_UNLCK;
+#endif
 
     if(lockfd < 0)
         return EXIT_SUCCESS;
 
 /* Cygwin implementation of fcntl() can't work */
-#if !defined(__CYGWIN__)
+#if !defined(__CYGWIN__) && !defined(_WIN32)
     /* Unlock */
     if(verbose) printf("Unlocking lock file\n");
     if(fcntl(lockfd, F_SETLK, & fl) < 0)

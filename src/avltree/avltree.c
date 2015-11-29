@@ -2,7 +2,7 @@
  * File: avltree.cpp
  * Description: Simple AVL Tree
  * Author: Rudolf Sikorski <rudolf.sikorski@freenet.de>
- * Revision: Mon, 14 Sep 2015 22:15:00 +0000
+ * Revision: Sun, 29 Nov 2015 12:05:00 +0000
  * License: Public Domain
  */
 #include <stdlib.h>

@@ -36,11 +36,13 @@ void set_tzshift()
 }
 
 /* Set SIGHUP handle */
+#if !defined(_WIN32)
 void sighup_handler(int i)
 {
     (void)i;
     fprintf(ERRFP, "Received SIGHUP, ignoring.\n");
 }
+#endif
 
 /* Convert string to lowercase */
 void to_lowercase(char * str)

@@ -49,12 +49,21 @@
 #define  MODE_LOCKFILE  0777
 #endif
 
+/* Windows-specific file mode bits */
+#if defined(_WIN32)
+#include <sys/stat.h>
+#undef   MODE_DIR
+#define  MODE_DIR       (S_IRWXU)
+#undef   MODE_FILE
+#define  MODE_FILE      (S_IRWXU)
+#undef   MODE_LOCKFILE
+#define  MODE_LOCKFILE  (S_IRUSR | S_IWUSR)
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/socket.h>
-#include <netdb.h>
 #include <time.h>
 #include <unistd.h>
 #include "avltree/avltree.h"
@@ -96,7 +105,9 @@ extern char lockfile[384];
 /* Get system timezone */
 void set_tzshift();
 /* Set SIGHUP handle */
+#if !defined(_WIN32)
 void sighup_handler(int i);
+#endif
 /* Convert string to lowercase */
 void to_lowercase(char * str);
 
@@ -169,4 +180,4 @@ int decompress_lzma(FILE * input, FILE * output);
 /* Compare size of LZMA archive <filename> content with <filesize> */
 int check_size_lzma(const char * filename, off_t filesize);
 
-#endif
+#endif /* DRWEBMIRROR_H_INCLUDED */

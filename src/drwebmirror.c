@@ -393,6 +393,7 @@ repeat5: /* Goto here if checksum mismatch */
             char filename[STRBUFSIZE];
             char sha_base[65], sha_real[65];
             off_t filesize = -1;
+            unsigned long filesize_ul;
             char * beg = buf + 1, * tmp;
             tmp = strchr(beg, '>'); /* if some as "=<w95>spider.vxd, ..." */
             if(tmp) beg = tmp + 1;
@@ -406,7 +407,10 @@ repeat5: /* Goto here if checksum mismatch */
             sha_base[64] = '\0';
             tmp = strrchr(buf, ',');
             if(tmp)
-                sscanf(tmp + 1, "%jd", & filesize);
+            {
+                sscanf(tmp + 1, "%lu", & filesize_ul);
+                filesize = (off_t)filesize_ul;
+            }
 
             status = download_check(filename, sha_base, sha_real, & sha256sum, "SHA256");
             if(status == DL_TRY_AGAIN && counter_global < MAX_REPEAT) /* Try again */
@@ -594,6 +598,7 @@ repeat7: /* Goto here if hashsum mismatch */
             char filename[STRBUFSIZE];
             int8_t is_xml = 0;
             off_t filesize = -1;
+            unsigned long filesize_ul;
             char * tmpchr;
 
             if(strstr(buf, "<xml") != NULL) is_xml = 1;
@@ -603,7 +608,10 @@ repeat7: /* Goto here if hashsum mismatch */
             sprintf(filename, "%s/%s", remotedir, strstr(buf, "name=\"") + 6);
             * strchr(filename, '\"') = '\0';
             if((tmpchr = strstr(buf, "size=\"")) != NULL)
-                sscanf(tmpchr + 6, "%jd\"", & filesize);
+            {
+                sscanf(tmpchr + 6, "%lu\"", & filesize_ul);
+                filesize = (off_t)filesize_ul;
+            }
 
             if(!exist(filename) && make_path_for(filename) != EXIT_SUCCESS) /* If file not exist, check directories and make it if need */
             {
@@ -661,13 +669,17 @@ repeat7: /* Goto here if hashsum mismatch */
                         char xfilename[STRBUFSIZE];
                         int status;
                         off_t xfilesize = -1;
+                        unsigned long xfilesize_ul;
 
                         strncpy(base_hash, strstr(buf, "hash=\"") + 6, 64);
                         base_hash[64] = '\0';
                         sprintf(xfilename, "%s/%s", directory, strstr(buf, "name=\"") + 6);
                         * strchr(xfilename, '\"') = '\0';
                         if((tmpchr = strstr(buf, "size=\"")) != NULL)
-                            sscanf(tmpchr + 6, "%jd\"", & xfilesize);
+                        {
+                            sscanf(tmpchr + 6, "%lu\"", & xfilesize_ul);
+                            xfilesize = (off_t)xfilesize_ul;
+                        }
 
                         if(!exist(xfilename) && make_path_for(xfilename) != EXIT_SUCCESS) /* If file not exist, check directories and make it if need */
                         {
@@ -833,13 +845,13 @@ repeatA: /* Goto here if checksum mismatch */
                 char filename_base[STRBUFSIZE], filename[STRBUFSIZE];
                 int status;
                 off_t filesize = -1;
-                uintmax_t filesize_tmp;
+                unsigned long filesize_ul;
 
-                sscanf(buf, "%[^,], %[^,], %jX, %[^,], %[^,], %[^,], %s",
-                       garb, garb, & filesize_tmp, md5_base, garb, garb, filename_base);
+                sscanf(buf, "%[^,], %[^,], %lu, %[^,], %[^,], %[^,], %s",
+                       garb, garb, & filesize_ul, md5_base, garb, garb, filename_base);
                 sprintf(filename, "%s/%s", real_dir, filename_base);
                 to_lowercase(md5_base);
-                filesize = (off_t)filesize_tmp;
+                filesize = (off_t)filesize_ul;
 
                 status = download_check(filename, md5_base, md5_real, & md5sum, "MD5");
                 if(status == DL_TRY_AGAIN && counter_global < MAX_REPEAT) /* Try again */

@@ -113,11 +113,6 @@ static SRes Decode(ISeqOutStream *outStream, ISeqInStream *inStream)
 }
 /* End of functions from LzmaUtil */
 
-/* USE_WINDOWS_FILE is not implemented */
-#if defined(USE_WINDOWS_FILE)
-#error USE_WINDOWS_FILE is not implemented!
-#endif
-
 /* Decompress LZMA archive <input> to file <output> */
 int decompress_lzma(FILE * input, FILE * output)
 {
@@ -133,8 +128,13 @@ int decompress_lzma(FILE * input, FILE * output)
     FileOutStream_CreateVTable(&outStream);
     File_Construct(& outStream.file);
 
+#if defined(USE_WINDOWS_FILE)
+    inStream.file.handle = (HANDLE)_get_osfhandle(_fileno(input));
+    outStream.file.handle = (HANDLE)_get_osfhandle(_fileno(output));
+#else
     inStream.file.file = input;
     outStream.file.file = output;
+#endif
 
     result = Decode(& outStream.s, & inStream.s);
 
@@ -162,27 +162,32 @@ off_t get_size_lzma(const char * filename)
     UInt64 unpackSize = 0;
     int i;
     unsigned char header[LZMA_PROPS_SIZE + 8];
+    FILE * file;
 
     if(!filename)
         return -1;
 
     FileSeqInStream_CreateVTable(& inStream);
     File_Construct(& inStream.file);
-    inStream.file.file = fopen(filename, "rb");
-
-    if(!inStream.file.file)
+    file = fopen(filename, "rb");
+    if(!file)
         return -1;
+#if defined(USE_WINDOWS_FILE)
+    inStream.file.handle = (HANDLE)_get_osfhandle(_fileno(file));
+#else
+    inStream.file.file = file;
+#endif
 
     if(SeqInStream_Read(& inStream.s, header, sizeof(header)) != 0)
     {
-        fclose(inStream.file.file);
+        fclose(file);
         return -1;
     }
 
     for (i = 0; i < 8; i++)
         unpackSize += (UInt64)header[LZMA_PROPS_SIZE + i] << (i * 8);
 
-    fclose(inStream.file.file);
+    fclose(file);
     return (off_t)unpackSize;
 }
 

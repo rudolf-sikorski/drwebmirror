@@ -18,8 +18,16 @@
 */
 
 #include "drwebmirror.h"
+#if defined(_WIN32)
+#include <winsock.h>
+#include <windows.h>
+typedef int socklen_t;
+#else
+#include <sys/socket.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#endif
 #include <sys/types.h>
 #include <limits.h>
 #include <sys/stat.h>
@@ -43,6 +51,17 @@ int8_t use_syshash;
 /* Android */
 int8_t use_android;
 
+/* Close connection */
+void conn_close(int * sock_fd)
+{
+#if defined(_WIN32)
+    closesocket(* sock_fd);
+#else
+    shutdown(* sock_fd, SHUT_RDWR);
+    close(* sock_fd);
+#endif
+}
+
 /* Open connection */
 int conn_open(int * sock_fd, const char * server, uint16_t port)
 {
@@ -50,36 +69,77 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
     struct hostent * host_info = gethostbyname(server);
     struct timeval tv;
     fd_set fdset;
+#if defined(_WIN32)
+    u_long sock_mode;
+#else
     int sock_opts;
+#endif
 
     if(host_info == NULL)
     {
+#if defined(_WIN32)
+        char * wsa_error_str = NULL;
+        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                       NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
+        fprintf(ERRFP, "Error %d with gethostbyname(): %s", WSAGetLastError(), wsa_error_str);
+        LocalFree(wsa_error_str);
+#else
         fprintf(ERRFP, "Error %d with gethostbyname(): %s\n", h_errno, hstrerror(h_errno));
+#endif
         return EXIT_FAILURE;
     }
 
     * sock_fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if(* sock_fd == -1)
     {
+#if defined(_WIN32)
+        char * wsa_error_str = NULL;
+        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                       NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
+        fprintf(ERRFP, "Error %d with socket(): %s", WSAGetLastError(), wsa_error_str);
+        LocalFree(wsa_error_str);
+#else
         fprintf(ERRFP, "Error %d with socket(): %s\n", errno, strerror(errno));
+#endif
         return EXIT_FAILURE;
     }
+
     /* Change to non-blocking mode */
+#if defined(_WIN32)
+    sock_mode = 1;
+    ioctlsocket(* sock_fd, FIONBIO, & sock_mode);
+#else
     sock_opts = fcntl(* sock_fd, F_GETFL);
     sock_opts |= O_NONBLOCK;
     fcntl(* sock_fd, F_SETFL, sock_opts);
+#endif
 
     memset(& sock_addr, 0, sizeof(sock_addr));
     sock_addr.sin_family = host_info->h_addrtype;
     sock_addr.sin_port = htons(port);
     memcpy(& sock_addr.sin_addr.s_addr, host_info->h_addr_list[0], host_info->h_length);
 
-    if(connect(* sock_fd, (const struct sockaddr *)(& sock_addr), sizeof(sock_addr)) != 0 && errno != EINPROGRESS)
+#if defined(_WIN32)
+    if(connect(* sock_fd, (const struct sockaddr *)(& sock_addr), sizeof(sock_addr)) != 0 &&
+            WSAGetLastError() != WSAEINPROGRESS && WSAGetLastError() != WSAEWOULDBLOCK)
     {
-        fprintf(ERRFP, "Error %d with connect(): %s\n", errno, strerror(errno));
-        close(* sock_fd);
+        char * wsa_error_str = NULL;
+        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                       NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
+        fprintf(ERRFP, "Error %d with connect(): %s", WSAGetLastError(), wsa_error_str);
+        LocalFree(wsa_error_str);
+        conn_close(sock_fd);
         return EXIT_FAILURE;
     }
+#else
+    if(connect(* sock_fd, (const struct sockaddr *)(& sock_addr), sizeof(sock_addr)) != 0 &&
+            errno != EINPROGRESS && errno != EWOULDBLOCK)
+    {
+        fprintf(ERRFP, "Error %d with connect(): %s\n", errno, strerror(errno));
+        conn_close(sock_fd);
+        return EXIT_FAILURE;
+    }
+#endif
 
     /* Set timeout value */
     memset(& tv, 0, sizeof(struct timeval));
@@ -90,27 +150,44 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
     if(select((* sock_fd) + 1, NULL, & fdset, NULL, & tv) == 1)
     {
         int so_error;
-        socklen_t len = sizeof so_error;
+        socklen_t len = sizeof(so_error);
+#if defined(_WIN32)
+        getsockopt(* sock_fd, SOL_SOCKET, SO_ERROR, (char *)(& so_error), & len);
+#else
         getsockopt(* sock_fd, SOL_SOCKET, SO_ERROR, & so_error, & len);
+#endif
 
         if(so_error != 0)
         {
+#if defined(_WIN32)
+            char * wsa_error_str = NULL;
+            FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                           NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
+            fprintf(ERRFP, "Error %d with select(): %s", WSAGetLastError(), wsa_error_str);
+            LocalFree(wsa_error_str);
+#else
             fprintf(ERRFP, "Error %d with select(): %s\n", so_error, strerror(so_error));
-            close(* sock_fd);
+#endif
+            conn_close(sock_fd);
             return EXIT_FAILURE;
         }
     }
     else
     {
         fprintf(ERRFP, "Error with select(): Connection timeout\n");
-        close(* sock_fd);
+        conn_close(sock_fd);
         return EXIT_FAILURE;
     }
 
     /* Change to blocking mode */
+#if defined(_WIN32)
+    sock_mode = 0;
+    ioctlsocket(* sock_fd, FIONBIO, & sock_mode);
+#else
     sock_opts = fcntl(* sock_fd, F_GETFL);
     sock_opts ^= O_NONBLOCK;
     fcntl(* sock_fd, F_SETFL, sock_opts);
+#endif
 
     /* Set recv timeout value */
     if(setsockopt(* sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const void *)(& tv), sizeof(struct timeval)) != 0)
@@ -120,13 +197,6 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
         fprintf(ERRFP, "Warning: Can't set recv() timeout\n");
 
     return EXIT_SUCCESS;
-}
-
-/* Close connection */
-void conn_close(int * sock_fd)
-{
-    shutdown(* sock_fd, SHUT_RDWR);
-    close(* sock_fd);
 }
 
 /* Get file <filename> from server */
@@ -214,9 +284,16 @@ redirect: /* Goto here if 30x received */
 
     if(send(sock_fd, request, strlen(request), 0) < 0) /* Send request */
     {
+#if defined(_WIN32)
+        char * wsa_error_str = NULL;
+        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                       NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
+        fprintf(ERRFP, "Error %d with send(): %s", WSAGetLastError(), wsa_error_str);
+        LocalFree(wsa_error_str);
+#else
         fprintf(ERRFP, "Error %d with send(): %s\n", errno, strerror(errno));
-        shutdown(sock_fd, SHUT_RDWR);
-        close(sock_fd);
+#endif
+        conn_close(&sock_fd);
         free(request);
         free(buffer);
         return EXIT_FAILURE;
@@ -237,9 +314,16 @@ redirect: /* Goto here if 30x received */
         bufend = bufpos + recv_count;
         if(recv_count <= 0)
         {
+#if defined(_WIN32)
+            char * wsa_error_str = NULL;
+            FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                           NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
+            fprintf(ERRFP, "Error %d with recv(): %s", WSAGetLastError(), wsa_error_str);
+            LocalFree(wsa_error_str);
+#else
             fprintf(ERRFP, "Error %d with recv(): %s\n", errno, strerror(errno));
-            shutdown(sock_fd, SHUT_RDWR);
-            close(sock_fd);
+#endif
+            conn_close(&sock_fd);
             free(buffer);
             return EXIT_FAILURE;
         }
@@ -275,8 +359,7 @@ redirect: /* Goto here if 30x received */
             if(status == EXIT_FAILURE)
             {
                 fprintf(ERRFP, "Error with recv(): Can't parse response\n");
-                shutdown(sock_fd, SHUT_RDWR);
-                close(sock_fd);
+                conn_close(&sock_fd);
                 free(buffer);
                 return status;
             }
@@ -285,8 +368,7 @@ redirect: /* Goto here if 30x received */
             /* Warning: 300 work only if server set Location field */
             if(status >= 300 && status <= 303 && redirect_num < MAX_REDIRECT)
             {
-                shutdown(sock_fd, SHUT_RDWR);
-                close(sock_fd);
+                conn_close(&sock_fd);
                 redirect_num++;
                 while((tmp = strchr(bufpos, '\r')) != NULL && tmp - 2 != strstr(bufpos - 2, "\r\n\r\n"))
                 {
@@ -349,8 +431,7 @@ redirect: /* Goto here if 30x received */
             /* All good */
             if(status != 200)
             {
-                shutdown(sock_fd, SHUT_RDWR);
-                close(sock_fd);
+                conn_close(&sock_fd);
                 free(buffer);
                 return status;
             }
@@ -367,18 +448,40 @@ redirect: /* Goto here if 30x received */
             {
                 sscanf(field_content, "%lu", & msgsize);
             }
-            else if(strcmp(field_name, "Last-Modified") == 0) /* Only RFC 822, sorry */
+            else if(strcmp(field_name, "Last-Modified") == 0) /* Only RFC 822 (RFC 1123), sorry */
             {
                 char * tmz = strrchr(field_content, ' ') + 1;
                 long tzshift_loc = 0;
                 struct tm raw_time;
+#if defined(_WIN32)
+                char wkday[4], month[4];
+#endif
                 memset(&raw_time, 0, sizeof(struct tm));
 
                 if(strcmp(tmz, "GMT") != 0)
                     sscanf(tmz, "%ld", & tzshift_loc);
                 tzshift_loc *= 60 * 60 / 100;
 
+#if defined(_WIN32)
+                sscanf(field_content, "%[^,], %d %[^ ] %d %d:%d:%d", wkday, & raw_time.tm_mday, month,
+                       & raw_time.tm_year, & raw_time.tm_hour, & raw_time.tm_min, & raw_time.tm_sec);
+                month[3] = '\0';
+                if     (strcmp(month, "Jan") == 0) raw_time.tm_mon = 0;
+                else if(strcmp(month, "Feb") == 0) raw_time.tm_mon = 1;
+                else if(strcmp(month, "Mar") == 0) raw_time.tm_mon = 2;
+                else if(strcmp(month, "Apr") == 0) raw_time.tm_mon = 3;
+                else if(strcmp(month, "May") == 0) raw_time.tm_mon = 4;
+                else if(strcmp(month, "Jun") == 0) raw_time.tm_mon = 5;
+                else if(strcmp(month, "Jul") == 0) raw_time.tm_mon = 6;
+                else if(strcmp(month, "Aug") == 0) raw_time.tm_mon = 7;
+                else if(strcmp(month, "Sep") == 0) raw_time.tm_mon = 8;
+                else if(strcmp(month, "Oct") == 0) raw_time.tm_mon = 9;
+                else if(strcmp(month, "Nov") == 0) raw_time.tm_mon = 10;
+                else if(strcmp(month, "Dec") == 0) raw_time.tm_mon = 11;
+                if(raw_time.tm_year >= 1900) raw_time.tm_year -= 1900;
+#else
                 strptime(field_content, "%a, %e %b %Y %H:%M:%S %z", & raw_time);
+#endif
 
                 /* Fixes buggy strptime */
                 raw_time.tm_wday = -1;
@@ -416,8 +519,7 @@ redirect: /* Goto here if 30x received */
     {
         if(more_verbose) printf("\n\n");
         fprintf(ERRFP, "Error with fopen() on %s\n", filename);
-        shutdown(sock_fd, SHUT_RDWR);
-        close(sock_fd);
+        conn_close(&sock_fd);
         free(buffer);
         return EXIT_FAILURE;
     }
@@ -442,9 +544,16 @@ redirect: /* Goto here if 30x received */
         ssize_t recv_count = recv(sock_fd, buffer, NETBUFSIZE, 0);
         if(recv_count <= 0)
         {
+#if defined(_WIN32)
+            char * wsa_error_str = NULL;
+            FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                           NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
+            fprintf(ERRFP, "Error %d with recv(): %s", WSAGetLastError(), wsa_error_str);
+            LocalFree(wsa_error_str);
+#else
             fprintf(ERRFP, "Error %d with recv(): %s\n", errno, strerror(errno));
-            shutdown(sock_fd, SHUT_RDWR);
-            close(sock_fd);
+#endif
+            conn_close(&sock_fd);
             free(buffer);
             return EXIT_FAILURE;
         }

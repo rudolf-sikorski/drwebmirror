@@ -1,0 +1,37 @@
+CC ?= gcc
+CFLAGS ?= -O3 -Wall -Wextra -DNDEBUG
+LDFLAGS ?= -static -s
+EXECUTABLE = drwebmirror.exe
+SOURCES = \
+	src\\main.c \
+	src\\common.c \
+	src\\filesystem.c \
+	src\\network.c \
+	src\\decompress.c \
+	src\\checksum.c \
+	src\\drwebmirror.c \
+	src\\avltree\\avltree.c \
+	src\\crc32\\crc32.c \
+	src\\md5\\md5c.c \
+	src\\sha256\\sha256.c \
+	src\\lzma\\Alloc.c \
+	src\\lzma\\LzmaDec.c \
+	src\\lzma\\7zFile.c \
+	src\\lzma\\7zStream.c
+OBJECTS = $(SOURCES:.c=.o)
+
+all: $(SOURCES) $(EXECUTABLE)
+
+.PHONY: clean distclean install uninstall
+
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC) $(CFLAGS) $(OBJECTS) -lwsock32 $(LDFLAGS) -o $@
+
+.c.o:
+	$(CC) $(CFLAGS) -c $< -o $@
+
+clean:
+	del /q /f $(OBJECTS) 2>nul
+
+distclean: clean
+	del /q /f $(EXECUTABLE) 2>nul

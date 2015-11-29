@@ -50,6 +50,12 @@ char syshash[33];
 int8_t use_syshash;
 /* Android */
 int8_t use_android;
+/* Proxy parameters */
+int8_t use_proxy;
+int8_t use_proxy_auth;
+char proxy_address[256];
+uint16_t proxy_port;
+char proxy_auth[77];
 
 /* Close connection */
 void conn_close(int * sock_fd)
@@ -71,6 +77,7 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
     fd_set fdset;
 #if defined(_WIN32)
     u_long sock_mode;
+    DWORD sendrecv_timeout = TIMEOUT * 1000;
 #else
     int sock_opts;
 #endif
@@ -179,15 +186,22 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
         return EXIT_FAILURE;
     }
 
-    /* Change to blocking mode */
 #if defined(_WIN32)
+    /* Change to blocking mode */
     sock_mode = 0;
     ioctlsocket(* sock_fd, FIONBIO, & sock_mode);
+
+    /* Set recv timeout value */
+    if(setsockopt(* sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)(& sendrecv_timeout), sizeof(DWORD)) != 0)
+        fprintf(ERRFP, "Warning: Can't set recv() timeout\n");
+    /* Set send timeout value */
+    if(setsockopt(* sock_fd, SOL_SOCKET, SO_SNDTIMEO, (const char *)(& sendrecv_timeout), sizeof(DWORD)) != 0)
+        fprintf(ERRFP, "Warning: Can't set recv() timeout\n");
 #else
+    /* Change to blocking mode */
     sock_opts = fcntl(* sock_fd, F_GETFL);
     sock_opts ^= O_NONBLOCK;
     fcntl(* sock_fd, F_SETFL, sock_opts);
-#endif
 
     /* Set recv timeout value */
     if(setsockopt(* sock_fd, SOL_SOCKET, SO_RCVTIMEO, (const void *)(& tv), sizeof(struct timeval)) != 0)
@@ -195,6 +209,7 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
     /* Set send timeout value */
     if(setsockopt(* sock_fd, SOL_SOCKET, SO_SNDTIMEO, (const void *)(& tv), sizeof(struct timeval)) != 0)
         fprintf(ERRFP, "Warning: Can't set recv() timeout\n");
+#endif
 
     return EXIT_SUCCESS;
 }
@@ -213,10 +228,6 @@ int conn_get(const char * filename)
 
     time_t lastmod = 0;
     FILE * fp;
-    const char request_fmt[] = "GET /%s HTTP/1.1\r\nAccept: */*\r\nAccept-Encoding: identity\r\nAccept-Ranges: bytes\r\nHost: %s\r\nX-DrWeb-Validate: %s\r\nX-DrWeb-KeyNumber: %s\r\nUser-Agent: %s\r\nConnection: close\r\nCache-Control: no-cache\r\n\r\n";
-    const char request_fmt_syshash[] = "GET /%s HTTP/1.1\r\nAccept: */*\r\nAccept-Encoding: identity\r\nAccept-Ranges: bytes\r\nHost: %s\r\nX-DrWeb-Validate: %s\r\nX-DrWeb-KeyNumber: %s\r\nX-DrWeb-SysHash: %s\r\nUser-Agent: %s\r\nConnection: close\r\nCache-Control: no-cache\r\n\r\n";
-    const char request_fmt_android[] = "GET /%s HTTP/1.1\r\nAccept: */*\r\nAccept-Encoding: identity\r\nAccept-Ranges: bytes\r\nHost: %s\r\nUser-Agent: %s\r\nConnection: close\r\n\r\n";
-    const char request_fmt_android_syshash[] = "GET /%s HTTP/1.1\r\nAccept: */*\r\nAccept-Encoding: identity\r\nAccept-Ranges: bytes\r\nHost: %s\r\nUser-Agent: %s\r\nX-DrWeb-SysHash: %s\r\nConnection: close\r\n\r\n";
     char * request;
     char filename_dl[STRBUFSIZE];
     char servername_dl[256];
@@ -233,45 +244,59 @@ redirect: /* Goto here if 30x received */
     status = -1;
     msgbegin = 0;
     bufpos = bufend = buffer;
+    request = (char *)calloc(REQBUFSIZE, sizeof(char));
 
-    if(conn_open(& sock_fd, servername_dl, serverport_dl) != EXIT_SUCCESS) /* Open connection */
-        return EXIT_FAILURE;
-
-    if(use_android == 0)
+    if(use_proxy == 1)
     {
-        if(use_syshash == 0)
+        if(conn_open(& sock_fd, proxy_address, proxy_port) != EXIT_SUCCESS) /* Open connection */
         {
-            request = (char *)calloc(strlen(request_fmt) + strlen(filename_dl) +
-                                     strlen(servername_dl) + strlen(key_md5sum) +
-                                     strlen(key_userid) + strlen(useragent), sizeof(char));
-            sprintf(request, request_fmt, filename_dl, servername_dl, key_md5sum, key_userid, useragent);
+            free(request);
+            free(buffer);
+            return EXIT_FAILURE;
         }
-        else
-        {
-            request = (char *)calloc(strlen(request_fmt_syshash) + strlen(filename_dl) +
-                                     strlen(servername_dl) + strlen(key_md5sum) +
-                                     strlen(key_userid) + strlen(useragent) +
-                                     strlen(syshash), sizeof(char));
-            sprintf(request, request_fmt_syshash, filename_dl, servername_dl, key_md5sum, key_userid, syshash, useragent);
-        }
+
+        sprintf(request,
+                "GET http://%s:%u/%s HTTP/1.1\r\n"
+                "Proxy-Connection: close\r\n",
+                servername_dl, (unsigned)serverport_dl, filename_dl);
+        if(use_proxy_auth == 1)
+            sprintf(request + strlen(request),
+                    "Proxy-Authorization: Basic %s\r\n",
+                    proxy_auth);
+
     }
     else
     {
-        if(use_syshash == 0)
+        if(conn_open(& sock_fd, servername_dl, serverport_dl) != EXIT_SUCCESS) /* Open connection */
         {
-            request = (char *)calloc(strlen(request_fmt) + strlen(filename_dl) +
-                                     strlen(servername_dl) + strlen(useragent), sizeof(char));
-            sprintf(request, request_fmt_android, filename_dl, servername_dl, useragent);
+            free(request);
+            free(buffer);
+            return EXIT_FAILURE;
         }
-        else
-        {
-            request = (char *)calloc(strlen(request_fmt_syshash) + strlen(filename_dl) +
-                                     strlen(servername_dl) + strlen(key_md5sum) +
-                                     strlen(key_userid) + strlen(useragent) +
-                                     strlen(syshash), sizeof(char));
-            sprintf(request, request_fmt_android_syshash, filename_dl, servername_dl, useragent, syshash);
-        }
+
+        sprintf(request, "GET /%s HTTP/1.1\r\n", filename_dl);
     }
+
+    sprintf(request + strlen(request),
+            "Accept: */*\r\n"
+            "Accept-Encoding: identity\r\n"
+            "Accept-Ranges: bytes\r\n"
+            "Host: %s:%u\r\n",
+            servername_dl, (unsigned)serverport_dl);
+    if(use_android == 0)
+        sprintf(request + strlen(request),
+                "X-DrWeb-Validate: %s\r\n"
+                "X-DrWeb-KeyNumber: %s\r\n",
+                key_md5sum, key_userid);
+    if(use_syshash == 1)
+        sprintf(request + strlen(request),
+                "X-DrWeb-SysHash: %s\r\n",
+                syshash);
+    sprintf(request + strlen(request),
+            "User-Agent: %s\r\n"
+            "Connection: close\r\n"
+            "Cache-Control: no-cache\r\n\r\n",
+            useragent);
 
     if(more_verbose)
     {
@@ -595,7 +620,130 @@ int download(const char * filename)
     if(counter >= MAX_REPEAT)
     {
         if(status != EXIT_FAILURE)
-            fprintf(ERRFP, "Error: Server response %d\n", status);
+            fprintf(ERRFP, "Error: Server response %d", status);
+        switch(status)
+        {
+        case 100:
+            fprintf(ERRFP, " Continue\n");
+            break;
+        case 101:
+            fprintf(ERRFP, " Switching Protocols\n");
+            break;
+        case 200:
+            fprintf(ERRFP, " OK\n");
+            break;
+        case 201:
+            fprintf(ERRFP, " Created\n");
+            break;
+        case 202:
+            fprintf(ERRFP, " Accepted\n");
+            break;
+        case 203:
+            fprintf(ERRFP, " Non-Authoritative Information\n");
+            break;
+        case 204:
+            fprintf(ERRFP, " No Content\n");
+            break;
+        case 205:
+            fprintf(ERRFP, " Reset Content\n");
+            break;
+        case 206:
+            fprintf(ERRFP, " Partial Content\n");
+            break;
+        case 300:
+            fprintf(ERRFP, " Multiple Choices\n");
+            break;
+        case 301:
+            fprintf(ERRFP, " Moved Permanently\n");
+            break;
+        case 302:
+            fprintf(ERRFP, " Found\n");
+            break;
+        case 303:
+            fprintf(ERRFP, " See Other\n");
+            break;
+        case 304:
+            fprintf(ERRFP, " Not Modified\n");
+            break;
+        case 305:
+            fprintf(ERRFP, " Use Proxy\n");
+            break;
+        case 307:
+            fprintf(ERRFP, " Temporary Redirect\n");
+            break;
+        case 400:
+            fprintf(ERRFP, " Bad Request\n");
+            break;
+        case 401:
+            fprintf(ERRFP, " Unauthorized\n");
+            break;
+        case 402:
+            fprintf(ERRFP, " Payment Required\n");
+            break;
+        case 403:
+            fprintf(ERRFP, " Forbidden\n");
+            break;
+        case 404:
+            fprintf(ERRFP, " Not Found\n");
+            break;
+        case 405:
+            fprintf(ERRFP, " Method Not Allowed\n");
+            break;
+        case 406:
+            fprintf(ERRFP, " Not Acceptable\n");
+            break;
+        case 407:
+            fprintf(ERRFP, " Proxy Authentication Required\n");
+            break;
+        case 408:
+            fprintf(ERRFP, " Request Timeout\n");
+            break;
+        case 409:
+            fprintf(ERRFP, " Conflict\n");
+            break;
+        case 410:
+            fprintf(ERRFP, " Gone\n");
+            break;
+        case 411:
+            fprintf(ERRFP, " Length Required\n");
+            break;
+        case 412:
+            fprintf(ERRFP, " Precondition Failed\n");
+            break;
+        case 413:
+            fprintf(ERRFP, " Request Entity Too Large\n");
+            break;
+        case 414:
+            fprintf(ERRFP, " Request-URI Too Long\n");
+            break;
+        case 415:
+            fprintf(ERRFP, " Unsupported Media Type\n");
+            break;
+        case 416:
+            fprintf(ERRFP, " Requested Range Not Satisfiable\n");
+            break;
+        case 417:
+            fprintf(ERRFP, " Expectation Failed\n");
+            break;
+        case 500:
+            fprintf(ERRFP, " Internal Server Error\n");
+            break;
+        case 501:
+            fprintf(ERRFP, " Not Implemented\n");
+            break;
+        case 502:
+            fprintf(ERRFP, " Bad Gateway\n");
+            break;
+        case 503:
+            fprintf(ERRFP, " Service Unavailable\n");
+            break;
+        case 505:
+            fprintf(ERRFP, " HTTP Version Not Supported\n");
+            break;
+        default:
+            fprintf(ERRFP, "\n");
+            break;
+        }
         return DL_FAILED;
     }
     return DL_DOWNLOADED;

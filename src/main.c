@@ -35,10 +35,13 @@
 #define OPT_PROTO        0x08
 #define OPT_REMOTE       0x09
 #define OPT_LOCAL        0x0A
-#define OPT_FAST         0x0B
-#define OPT_VERBOSE      0x0C
-#define OPT_MORE_VERBOSE 0x0D
-#define OPT_HELP         0x0E
+#define OPT_PROXY        0x0B
+#define OPT_PROXY_USER   0x0C
+#define OPT_PROXY_PASS   0x0D
+#define OPT_FAST         0x0E
+#define OPT_VERBOSE      0x0F
+#define OPT_MORE_VERBOSE 0x10
+#define OPT_HELP         0x11
 
 /* Flag of use verbose output */
 int8_t verbose;
@@ -54,20 +57,23 @@ void show_help()
     printf("Usage: drwebmirror <options>\n");
     printf("\n");
     printf("Options:\n");
-    printf("  -k FILE,    --keyfile=FILE       set key file\n");
-    printf("  -u NUMBER,  --user=NUMBER        set UserID number from key file\n");
-    printf("  -m STRING,  --md5=STRING         set MD5 sum of key file\n");
-    printf("  -H STRING,  --syshash=STRING     set X-DrWeb-SysHash header\n");
-    printf("  -a STRING,  --agent=STRING       set custom User Agent\n");
-    printf("  -s ADDRESS, --server=ADDRESS     set update server\n");
-    printf("  -P NUMBER,  --port=NUMBER        set update server port\n");
-    printf("  -p PROTO,   --proto=PROTO        set update protocol (4, 5, 7 or A)\n");
-    printf("  -r PATH,    --remote=PATH        set remote directory or file\n");
-    printf("  -l DIR,     --local=DIR          set local directory\n");
-    printf("  -f,         --fast               use fast checksums checking (dangerous)\n");
-    printf("  -v,         --verbose            show verbose output\n");
-    printf("  -V,         --verbose-full       show even more verbose output\n");
-    printf("  -h,         --help               show this help\n");
+    printf("  -k FILE,    --keyfile=FILE         set key file\n");
+    printf("  -u NUMBER,  --user=NUMBER          set UserID number from key file\n");
+    printf("  -m STRING,  --md5=STRING           set MD5 sum of key file\n");
+    printf("  -H STRING,  --syshash=STRING       set X-DrWeb-SysHash header\n");
+    printf("  -a STRING,  --agent=STRING         set custom User Agent\n");
+    printf("  -s ADDRESS, --server=ADDRESS       set update server\n");
+    printf("  -P NUMBER,  --port=NUMBER          set update server port\n");
+    printf("  -p PROTO,   --proto=PROTO          set update protocol (4, 5, 7 or A)\n");
+    printf("  -r PATH,    --remote=PATH          set remote directory or file\n");
+    printf("  -l DIR,     --local=DIR            set local directory\n");
+    printf("              --proxy=ADDRESS:PORT   set http proxy\n");
+    printf("              --proxy-user=USER      set username for http proxy\n");
+    printf("              --proxy-password=PASS  set password for http proxy\n");
+    printf("  -f,         --fast                 use fast checksums checking (dangerous)\n");
+    printf("  -v,         --verbose              show verbose output\n");
+    printf("  -V,         --verbose-full         show even more verbose output\n");
+    printf("  -h,         --help                 show this help\n");
     printf("\n");
     printf("Example:\n");
     printf("\n");
@@ -178,7 +184,7 @@ int main(int argc, char * argv[])
 {
     int opt = 0, i;
     int8_t o_k = 0, o_a = 0, o_s = 0, o_p = 0, o_r = 0, o_l = 0, o_v = 0, o_h = 0;
-    int8_t o_u = 0, o_m = 0, o_H = 0, o_P = 0, o_V = 0, o_f = 0;
+    int8_t o_u = 0, o_m = 0, o_H = 0, o_P = 0, o_V = 0, o_f = 0, o_pr = 0, o_pru = 0, o_prp = 0;
     char * optval = NULL;
     char proto = '\0';
     char * workdir = NULL;
@@ -196,6 +202,7 @@ int main(int argc, char * argv[])
     WSADATA wsa_data;
     WORD wsa_ver = MAKEWORD(1, 1);
 #endif
+    char * proxy_user, * proxy_pass;
 
 #if !defined(_WIN32)
     memset(& sigact, 0, sizeof(struct sigaction));
@@ -230,6 +237,12 @@ int main(int argc, char * argv[])
                     opt = OPT_REMOTE;
                 else if(strstr(argv[i] + 2, "local") == argv[i] + 2)
                     opt = OPT_LOCAL;
+                else if(strstr(argv[i] + 2, "proxy-user") == argv[i] + 2)
+                    opt = OPT_PROXY_USER;
+                else if(strstr(argv[i] + 2, "proxy-password") == argv[i] + 2)
+                    opt = OPT_PROXY_PASS;
+                else if(strstr(argv[i] + 2, "proxy") == argv[i] + 2)
+                    opt = OPT_PROXY;
                 else if(strstr(argv[i] + 2, "fast") == argv[i] + 2)
                     opt = OPT_FAST;
                 else if(strstr(argv[i] + 2, "verbose-full") == argv[i] + 2)
@@ -247,7 +260,8 @@ int main(int argc, char * argv[])
 
                 if(opt == OPT_KEYFILE || opt == OPT_USER || opt == OPT_MD5 || opt == OPT_SYSHASH ||
                    opt == OPT_AGENT || opt == OPT_SERVER || opt == OPT_PORT || opt == OPT_PROTO ||
-                   opt == OPT_REMOTE || opt == OPT_LOCAL)
+                   opt == OPT_REMOTE || opt == OPT_LOCAL || opt == OPT_PROXY || opt == OPT_PROXY_USER ||
+                   opt == OPT_PROXY_PASS)
                 {
                     optval = strchr(argv[i], '=');
                     if(optval)
@@ -368,6 +382,18 @@ int main(int argc, char * argv[])
         case OPT_LOCAL:
             o_l++;
             workdir = optval;
+            break;
+        case OPT_PROXY:
+            o_pr++;
+            strncpy(proxy_address, optval, sizeof(proxy_address) - 1);
+            break;
+        case OPT_PROXY_USER:
+            o_pru++;
+            proxy_user = optval;
+            break;
+        case OPT_PROXY_PASS:
+            o_prp++;
+            proxy_pass = optval;
             break;
         case OPT_FAST:
             o_f++;
@@ -507,6 +533,39 @@ int main(int argc, char * argv[])
     else
         serverport = 80;
 
+    if(o_pr)
+    {
+        unsigned tmp = 3128;
+        char * delim = strrchr(proxy_address, ':');
+        if(delim != NULL)
+        {
+            sscanf(delim + 1, "%u", & tmp);
+            * delim = '\0';
+        }
+        proxy_port = (uint16_t)tmp;
+        use_proxy = 1;
+        if(o_pru && o_prp)
+        {
+            char proxy_auth_text[64];
+            size_t orig_len = strlen(proxy_user) + strlen(proxy_pass) + 1;
+            size_t base64_len = ((orig_len + 2) / 3 * 4) + 1;
+            if(base64_len > 76)
+            {
+                fprintf(ERRFP, "Proxy username or password is too long.\n\n");
+                return EXIT_FAILURE;
+            }
+            snprintf(proxy_auth_text, sizeof(proxy_auth_text) - 1, "%s:%s", proxy_user, proxy_pass);
+            proxy_auth_text[sizeof(proxy_auth_text) - 1] = '\0';
+            base64_encode(proxy_auth_text, proxy_auth);
+            use_proxy_auth = 1;
+        }
+    }
+    else
+    {
+        use_proxy = 0;
+        use_proxy_auth = 0;
+    }
+
     if(o_v)
         verbose = 1;
     else
@@ -548,7 +607,9 @@ int main(int argc, char * argv[])
     printf("From:  http://%s:%u/%s\n", servername, (unsigned)serverport, remotedir);
     getcwd(cwd, sizeof(cwd));
     printf("To:    %s\n", cwd);
-    if(verbose)
+    if(use_proxy)
+        printf("Proxy: %s:%u\n", proxy_address, (unsigned)proxy_port);
+    if(verbose == 1)
     {
         if(use_android == 0)
         {
@@ -558,6 +619,12 @@ int main(int argc, char * argv[])
         if(use_syshash)
             printf("Hash:  %s\n", syshash);
         printf("Agent: %s\n", useragent);
+    }
+    if(more_verbose == 1 && use_proxy_auth == 1)
+    {
+        printf("Proxy User:   %s\n", proxy_user);
+        printf("Proxy Pass:   %s\n", proxy_pass);
+        printf("Proxy base64: %s\n", proxy_auth);
     }
     printf("---------------------------------------\n");
 

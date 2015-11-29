@@ -33,6 +33,7 @@
 #define  REPEAT_SLEEP   10
 #define  NETBUFSIZE     32768
 #define  STRBUFSIZE     1024
+#define  REQBUFSIZE     16384
 #define  MODE_DIR       0755
 #define  MODE_FILE      0644
 #define  MODE_LOCKFILE  0600
@@ -92,6 +93,12 @@ extern char syshash[33];
 extern int8_t use_syshash;
 /* Android */
 extern int8_t use_android;
+/* Proxy parameters */
+extern int8_t use_proxy;
+extern int8_t use_proxy_auth;
+extern char proxy_address[256];
+extern uint16_t proxy_port;
+extern char proxy_auth[77];
 
 /* Tree for caching checksums in fast mode */
 extern avl_node * tree;
@@ -110,6 +117,8 @@ void sighup_handler(int i);
 #endif
 /* Convert string to lowercase */
 void to_lowercase(char * str);
+/* Base64 encoding (RFC 2045) */
+size_t base64_encode(const char * in, char * out);
 
 /* Drwebmirror */
 /* Get UserID and MD5 sum from keyfile */

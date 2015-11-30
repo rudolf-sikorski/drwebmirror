@@ -110,7 +110,7 @@ void show_help()
     printf("| DrWeb 5.0/6.0 for Unix               | unix/500                     | 4/5 |\n");
     printf("| DrWeb 6.0/8.0 for Unix               | unix/700                     | 4/5 |\n");
     printf("| DrWeb 9.0 for Unix                   | unix/900                     | 4/5 |\n");
-    printf("| DrWeb 10.0 for Unix                  | unix/1000/vdb                | 4/5 |\n");
+    printf("| DrWeb 10.0/10.1 for Unix             | unix/1000/vdb                | 4/5 |\n");
     printf("|                                      | unix/1000/dws                | 4/5 |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
     printf("| DrWeb 9.0 LiveDisk                   | livecd/900/windows           | 4/5 |\n");
@@ -123,7 +123,7 @@ void show_help()
     printf("| DrWeb 8.0 Security Space for Windows | xmlzone/release/800/sspace   |  7  |\n");
     printf("| DrWeb 8.0 for Windows Server         | xmlzone/release/800/servers  |  7  |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
-    printf("| DrWeb 9.0 for Windows                | xmlzone/release/900/windows  |  7  |\n");
+    printf("| DrWeb 9.0/9.1 for Windows            | xmlzone/release/900/windows  |  7  |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
     printf("| DrWeb 10.0 for Windows               | xmlzone/release/1000/windows |  7  |\n");
     printf("| DrWeb 10.0 Beta for Windows          | xmlzone/beta/1000/windows    |  7  |\n");
@@ -134,6 +134,7 @@ void show_help()
     printf("| DrWeb 6.0-8.0 for Android            | android/6.1/drwebce.lst      |  A  |\n");
     printf("| DrWeb 9.0 for Android                | android/9/version.lst        |  A  |\n");
     printf("| DrWeb 10.0 for Android               | android/10/version.lst       |  A  |\n");
+    printf("| DrWeb 10.1 for Android               | android/10.1/version.lst     |  A  |\n");
     printf("|--------------------------------------|------------------------------|-----|\n");
 }
 
@@ -159,6 +160,9 @@ void detect_useragent(const char * dir)
         /* DrWeb Security Space 10.0.3(1), Android 4.4.2 */
         else if(strcmp(dir, "android/10/version.lst") == 0)
             strncpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 10.0.3.14009 Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent) - 1);
+        /* DrWeb Security Space 10.1.1(1), Android 4.4.2 */
+        else if(strcmp(dir, "android/10.1/version.lst") == 0)
+            strncpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 10.1.1.14011 Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent) - 1);
     }
     if(useragent[0] == '\0')
         strncpy(useragent, DEF_USERAGENT, sizeof(useragent) - 1);

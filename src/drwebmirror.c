@@ -847,7 +847,7 @@ repeatA: /* Goto here if checksum mismatch */
                 off_t filesize = -1;
                 unsigned long filesize_ul;
 
-                sscanf(buf, "%[^,], %[^,], %lu, %[^,], %[^,], %[^,], %s",
+                sscanf(buf, "%[^,], %[^,], %lx, %[^,], %[^,], %[^,], %s",
                        garb, garb, & filesize_ul, md5_base, garb, garb, filename_base);
                 sprintf(filename, "%s/%s", real_dir, filename_base);
                 to_lowercase(md5_base);

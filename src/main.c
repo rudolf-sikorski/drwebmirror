@@ -202,7 +202,7 @@ int main(int argc, char * argv[])
     WSADATA wsa_data;
     WORD wsa_ver = MAKEWORD(1, 1);
 #endif
-    char * proxy_user, * proxy_pass;
+    char * proxy_user = NULL, * proxy_pass = NULL;
 
 #if !defined(_WIN32)
     memset(& sigact, 0, sizeof(struct sigaction));

@@ -225,10 +225,11 @@ int conn_get(const char * filename)
     int8_t msgbegin;
     unsigned long msgcurr = 0;
     size_t redirect_num = 0;
+    size_t send_count, request_len;
 
     time_t lastmod = 0;
     FILE * fp;
-    char * request;
+    char * request, * request_curr;
     char filename_dl[STRBUFSIZE];
     char servername_dl[256];
     uint16_t serverport_dl = serverport;
@@ -298,30 +299,41 @@ redirect: /* Goto here if 30x received */
             "Cache-Control: no-cache\r\n\r\n",
             useragent);
 
+    request_len = strlen(request);
     if(more_verbose)
     {
         printf("\n");
         size_t i;
-        for(i = 0; i < strlen(request); i++)
+        for(i = 0; i < request_len; i++)
             if(request[i] != '\r')
                 printf("%c", request[i]);
     }
 
-    if(send(sock_fd, request, strlen(request), 0) < 0) /* Send request */
+    /* Number of bytes actually sent out might be less than the number you told it to send */
+    /* See http://beej.us/guide/bgnet/output/html/multipage/syscalls.html#sendrecv for details */
+    request_curr = request;
+    send_count = 0;
+    while(send_count < request_len)
     {
+        ssize_t bytes_sent = send(sock_fd, request_curr, strlen(request_curr), 0); /* Send request */
+        if(bytes_sent < 0)
+        {
 #if defined(_WIN32)
-        char * wsa_error_str = NULL;
-        FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-                       NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
-        fprintf(ERRFP, "Error %d with send(): %s", WSAGetLastError(), wsa_error_str);
-        LocalFree(wsa_error_str);
+            char * wsa_error_str = NULL;
+            FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                           NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
+            fprintf(ERRFP, "Error %d with send(): %s", WSAGetLastError(), wsa_error_str);
+            LocalFree(wsa_error_str);
 #else
-        fprintf(ERRFP, "Error %d with send(): %s\n", errno, strerror(errno));
+            fprintf(ERRFP, "Error %d with send(): %s\n", errno, strerror(errno));
 #endif
-        conn_close(&sock_fd);
-        free(request);
-        free(buffer);
-        return EXIT_FAILURE;
+            conn_close(&sock_fd);
+            free(request);
+            free(buffer);
+            return EXIT_FAILURE;
+        }
+        send_count += bytes_sent;
+        request_curr += bytes_sent;
     }
     free(request);
 

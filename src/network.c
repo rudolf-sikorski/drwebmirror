@@ -229,12 +229,11 @@ int conn_get(const char * filename)
 
     time_t lastmod = 0;
     FILE * fp;
-    char * request, * request_curr;
     char filename_dl[STRBUFSIZE];
     char servername_dl[256];
     uint16_t serverport_dl = serverport;
 
-    buffer = (char *)malloc(NETBUFSIZE);
+    buffer = (char *)calloc(NETBUFSIZE + 4, sizeof(char));
 
     strncpy(filename_dl, filename, sizeof(filename_dl) - 1);
     strncpy(servername_dl, servername, sizeof(servername_dl) - 1);
@@ -244,24 +243,21 @@ int conn_get(const char * filename)
 redirect: /* Goto here if 30x received */
     status = -1;
     msgbegin = 0;
-    bufpos = bufend = buffer;
-    request = (char *)calloc(REQBUFSIZE, sizeof(char));
 
     if(use_proxy == 1)
     {
         if(conn_open(& sock_fd, proxy_address, proxy_port) != EXIT_SUCCESS) /* Open connection */
         {
-            free(request);
             free(buffer);
             return EXIT_FAILURE;
         }
 
-        sprintf(request,
+        sprintf(buffer,
                 "GET http://%s:%u/%s HTTP/1.1\r\n"
                 "Proxy-Connection: close\r\n",
                 servername_dl, (unsigned)serverport_dl, filename_dl);
         if(use_proxy_auth == 1)
-            sprintf(request + strlen(request),
+            sprintf(buffer + strlen(buffer),
                     "Proxy-Authorization: Basic %s\r\n",
                     proxy_auth);
 
@@ -270,52 +266,51 @@ redirect: /* Goto here if 30x received */
     {
         if(conn_open(& sock_fd, servername_dl, serverport_dl) != EXIT_SUCCESS) /* Open connection */
         {
-            free(request);
             free(buffer);
             return EXIT_FAILURE;
         }
 
-        sprintf(request, "GET /%s HTTP/1.1\r\n", filename_dl);
+        sprintf(buffer, "GET /%s HTTP/1.1\r\n", filename_dl);
     }
 
-    sprintf(request + strlen(request),
+    sprintf(buffer + strlen(buffer),
             "Accept: */*\r\n"
             "Accept-Encoding: identity\r\n"
             "Accept-Ranges: bytes\r\n"
             "Host: %s:%u\r\n",
             servername_dl, (unsigned)serverport_dl);
     if(use_android == 0)
-        sprintf(request + strlen(request),
+        sprintf(buffer + strlen(buffer),
                 "X-DrWeb-Validate: %s\r\n"
                 "X-DrWeb-KeyNumber: %s\r\n",
                 key_md5sum, key_userid);
     if(use_syshash == 1)
-        sprintf(request + strlen(request),
+        sprintf(buffer + strlen(buffer),
                 "X-DrWeb-SysHash: %s\r\n",
                 syshash);
-    sprintf(request + strlen(request),
+    sprintf(buffer + strlen(buffer),
             "User-Agent: %s\r\n"
             "Connection: close\r\n"
             "Cache-Control: no-cache\r\n\r\n",
             useragent);
 
-    request_len = strlen(request);
+    request_len = strlen(buffer);
     if(more_verbose)
     {
         printf("\n");
         size_t i;
         for(i = 0; i < request_len; i++)
-            if(request[i] != '\r')
-                printf("%c", request[i]);
+            if(buffer[i] != '\r')
+                printf("%c", buffer[i]);
     }
 
     /* Number of bytes actually sent out might be less than the number you told it to send */
     /* See http://beej.us/guide/bgnet/output/html/multipage/syscalls.html#sendrecv for details */
-    request_curr = request;
+    bufpos = bufend = buffer;
     send_count = 0;
     while(send_count < request_len)
     {
-        ssize_t bytes_sent = send(sock_fd, request_curr, strlen(request_curr), 0); /* Send request */
+        ssize_t bytes_sent = send(sock_fd, bufpos, strlen(bufpos), 0); /* Send request */
         if(bytes_sent < 0)
         {
 #if defined(_WIN32)
@@ -328,15 +323,14 @@ redirect: /* Goto here if 30x received */
             fprintf(ERRFP, "Error %d with send(): %s\n", errno, strerror(errno));
 #endif
             conn_close(&sock_fd);
-            free(request);
             free(buffer);
             return EXIT_FAILURE;
         }
         send_count += bytes_sent;
-        request_curr += bytes_sent;
+        bufpos += bytes_sent;
     }
-    free(request);
 
+    bufpos = buffer;
     buffer[0] = '\0';
     while(!msgbegin) /* Parse header of response */
     {
@@ -465,7 +459,7 @@ redirect: /* Goto here if 30x received */
             if(status == 600)
                 fprintf(ERRFP, "Error: License key file is key from an unregistered version.\n");
 
-            /* All good */
+            /* Something wrong */
             if(status != 200)
             {
                 conn_close(&sock_fd);

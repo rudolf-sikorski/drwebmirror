@@ -33,7 +33,6 @@
 #define  REPEAT_SLEEP   10
 #define  NETBUFSIZE     32768
 #define  STRBUFSIZE     1024
-#define  REQBUFSIZE     16384
 #define  MODE_DIR       0755
 #define  MODE_FILE      0644
 #define  MODE_LOCKFILE  0600

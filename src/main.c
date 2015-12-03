@@ -76,6 +76,16 @@ void show_help()
     printf("\n");
     printf("  drwebmirror -k drweb32.key -s update.drweb.com -p 4 -r unix/500 -l .\n");
     printf("\n");
+    printf("Known update servers:\n");
+    printf("\n");
+    printf("  update.drweb.com         update.msk.drweb.com     update.msk3.drweb.com\n"
+           "  update.msk4.drweb.com    update.msk5.drweb.com    update.msk6.drweb.com\n"
+           "  update.msk7.drweb.com    update.msk8.drweb.com    update.msk9.drweb.com\n"
+           "  update.msk10.drweb.com   update.msk11.drweb.com   update.msk12.drweb.com\n"
+           "  update.msk13.drweb.com   update.msk14.drweb.com   update.msk15.drweb.com\n"
+           "  update.us.drweb.com      update.us1.drweb.com     update.fr1.drweb.com\n"
+           "  update.kz.drweb.com      update.nsk1.drweb.com\n");
+    printf("\n");
     printf("Known remote directories and update protocol versions:\n");
     printf("\n");
     printf("|--------------------------------------+------------------------------+-----|\n");

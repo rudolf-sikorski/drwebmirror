@@ -48,101 +48,101 @@ int8_t more_verbose;
 /* Show help message */
 void show_help()
 {
-    printf("DrWebMirror %s, tool for create mirror of DrWeb update server.\n", PROG_VERSION);
-    printf("Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>\n");
-    printf("Homepage: https://fami.codefreak.ru/osp/drwebmirror\n\n");
-    printf("Usage: drwebmirror <options>\n");
-    printf("\n");
-    printf("Options:\n");
-    printf("  -k FILE,    --keyfile=FILE         set key file\n");
-    printf("  -u NUMBER,  --user=NUMBER          set UserID number from key file\n");
-    printf("  -m STRING,  --md5=STRING           set MD5 sum of key file\n");
-    printf("  -H STRING,  --syshash=STRING       set X-DrWeb-SysHash header\n");
-    printf("  -a STRING,  --agent=STRING         set custom User Agent\n");
-    printf("  -s ADDRESS, --server=ADDRESS       set update server\n");
-    printf("  -P NUMBER,  --port=NUMBER          set update server port\n");
-    printf("  -p PROTO,   --proto=PROTO          set update protocol (4, 5, 7 or A)\n");
-    printf("  -r PATH,    --remote=PATH          set remote directory or file\n");
-    printf("  -l DIR,     --local=DIR            set local directory\n");
-    printf("              --proxy=ADDRESS:PORT   set http proxy\n");
-    printf("              --proxy-user=USER      set username for http proxy\n");
-    printf("              --proxy-password=PASS  set password for http proxy\n");
-    printf("  -f,         --fast                 use fast checksums checking (dangerous)\n");
-    printf("  -v,         --verbose              show verbose output\n");
-    printf("  -V,         --verbose-full         show even more verbose output\n");
-    printf("  -h,         --help                 show this help\n");
-    printf("\n");
-    printf("Example:\n");
-    printf("\n");
-    printf("  drwebmirror -k drweb32.key -s update.drweb.com -p 4 -r unix/500 -l .\n");
-    printf("\n");
-    printf("Known update servers:\n");
-    printf("\n");
-    printf("  update.drweb.com         update.msk.drweb.com     update.msk3.drweb.com\n"
+    printf("DrWebMirror " PROG_VERSION ", tool for create mirror of DrWeb update server.\n"
+           "Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>\n"
+           "Homepage: https://fami.codefreak.ru/osp/drwebmirror\n\n"
+           "Usage: drwebmirror <options>\n"
+           "\n"
+           "Options:\n"
+           "  -k FILE,    --keyfile=FILE         set key file\n"
+           "  -u NUMBER,  --user=NUMBER          set UserID number from key file\n"
+           "  -m STRING,  --md5=STRING           set MD5 sum of key file\n"
+           "  -H STRING,  --syshash=STRING       set X-DrWeb-SysHash header\n"
+           "  -a STRING,  --agent=STRING         set custom User Agent\n"
+           "  -s ADDRESS, --server=ADDRESS       set update server\n"
+           "  -P NUMBER,  --port=NUMBER          set update server port\n"
+           "  -p PROTO,   --proto=PROTO          set update protocol (4, 5, 7 or A)\n"
+           "  -r PATH,    --remote=PATH          set remote directory or file\n"
+           "  -l DIR,     --local=DIR            set local directory\n"
+           "              --proxy=ADDRESS:PORT   set http proxy\n"
+           "              --proxy-user=USER      set username for http proxy\n"
+           "              --proxy-password=PASS  set password for http proxy\n"
+           "  -f,         --fast                 use fast checksums checking (dangerous)\n"
+           "  -v,         --verbose              show verbose output\n"
+           "  -V,         --verbose-full         show even more verbose output\n"
+           "  -h,         --help                 show this help\n"
+           "\n"
+           "Example:\n"
+           "\n"
+           "  drwebmirror -k drweb32.key -s update.drweb.com -p 4 -r unix/500 -l .\n"
+           "\n"
+           "Known update servers:\n"
+           "\n"
+           "  update.drweb.com         update.msk.drweb.com     update.msk3.drweb.com\n"
            "  update.msk4.drweb.com    update.msk5.drweb.com    update.msk6.drweb.com\n"
            "  update.msk7.drweb.com    update.msk8.drweb.com    update.msk9.drweb.com\n"
            "  update.msk10.drweb.com   update.msk11.drweb.com   update.msk12.drweb.com\n"
            "  update.msk13.drweb.com   update.msk14.drweb.com   update.msk15.drweb.com\n"
            "  update.us.drweb.com      update.us1.drweb.com     update.fr1.drweb.com\n"
-           "  update.kz.drweb.com      update.nsk1.drweb.com    update.geo.drweb.com\n");
-    printf("\n");
-    printf("Known remote directories and update protocol versions:\n");
-    printf("\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("|           DrWeb Version              |   Remote directory or file   |  P  |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 4.33 for Windows               | windows                      |  4  |\n");
-    printf("|                                      | 433/windows                  |  4  |\n");
-    printf("| DrWeb 4.33 for Windows + Antispam    | 433/vr/windows               |  4  |\n");
-    printf("| DrWeb 4.33 for Windows Server        | servers/433/windows          |  4  |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 4.44 for Windows               | 444/windows                  |  4  |\n");
-    printf("| DrWeb 4.44 for Windows + Antispam    | 444/vr/windows               |  4  |\n");
-    printf("| DrWeb 4.44 for Windows Server        | 444/servers/windows          |  4  |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 5.0 for Windows                | 500/windows                  | 4/5 |\n");
-    printf("|                                      | 500/winold/windows           | 4/5 |\n");
-    printf("| DrWeb 5.0 Security Space for Windows | 500/sspace/windows           | 4/5 |\n");
-    printf("| DrWeb 5.0 for Windows Server         | 500/servers/windows          | 4/5 |\n");
-    printf("|                                      | 500/servers/nt4srv/windows   | 4/5 |\n");
-    printf("| DrWebWCL 5.0                         | 500/winconsole/windows       | 4/5 |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 6.0 for Windows                | x86/600/av/windows           | 4/5 |\n");
-    printf("|                                      | x64/600/av/windows           | 4/5 |\n");
-    printf("| DrWeb 6.0 Security Space for Windows | x86/600/sspace/windows       | 4/5 |\n");
-    printf("|                                      | x64/600/sspace/windows       | 4/5 |\n");
-    printf("| DrWeb 6.0 for Windows Server         | x86/600/servers/windows      | 4/5 |\n");
-    printf("|                                      | x64/600/servers/windows      | 4/5 |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 5.0/6.0 for Unix               | unix/500                     | 4/5 |\n");
-    printf("| DrWeb 6.0/8.0 for Unix               | unix/700                     | 4/5 |\n");
-    printf("| DrWeb 9.0 for Unix                   | unix/900                     | 4/5 |\n");
-    printf("| DrWeb 10.0/10.1 for Unix             | unix/1000/vdb                | 4/5 |\n");
-    printf("|                                      | unix/1000/dws                | 4/5 |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 9.0 LiveDisk                   | livecd/900/windows           | 4/5 |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 7.0 for Windows                | xmlzone/release/700/av       |  7  |\n");
-    printf("| DrWeb 7.0 Security Space for Windows | xmlzone/release/700/sspace   |  7  |\n");
-    printf("| DrWeb 7.0 for Windows Server         | xmlzone/release/700/servers  |  7  |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 8.0 for Windows                | xmlzone/release/800/av       |  7  |\n");
-    printf("| DrWeb 8.0 Security Space for Windows | xmlzone/release/800/sspace   |  7  |\n");
-    printf("| DrWeb 8.0 for Windows Server         | xmlzone/release/800/servers  |  7  |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 9.0/9.1 for Windows            | xmlzone/release/900/windows  |  7  |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 10.0 for Windows               | xmlzone/release/1000/windows |  7  |\n");
-    printf("| DrWeb 10.0 Beta for Windows          | xmlzone/beta/1000/windows    |  7  |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 11.0 for Windows               | xmlzone/release/1100/windows |  7  |\n");
-    printf("| DrWeb 11.0 Beta for Windows          | xmlzone/beta/1100/windows    |  7  |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
-    printf("| DrWeb 6.0-8.0 for Android            | android/6.1/drwebce.lst      |  A  |\n");
-    printf("| DrWeb 9.0 for Android                | android/9/version.lst        |  A  |\n");
-    printf("| DrWeb 10.0 for Android               | android/10/version.lst       |  A  |\n");
-    printf("| DrWeb 10.1 for Android               | android/10.1/version.lst     |  A  |\n");
-    printf("|--------------------------------------+------------------------------+-----|\n");
+           "  update.kz.drweb.com      update.nsk1.drweb.com    update.geo.drweb.com\n"
+           "\n"
+           "Known remote directories and update protocol versions:\n"
+           "\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "|           DrWeb Version              |   Remote directory or file   |  P  |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 4.33 for Windows               | windows                      |  4  |\n"
+           "|                                      | 433/windows                  |  4  |\n"
+           "| DrWeb 4.33 for Windows + Antispam    | 433/vr/windows               |  4  |\n"
+           "| DrWeb 4.33 for Windows Server        | servers/433/windows          |  4  |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 4.44 for Windows               | 444/windows                  |  4  |\n"
+           "| DrWeb 4.44 for Windows + Antispam    | 444/vr/windows               |  4  |\n"
+           "| DrWeb 4.44 for Windows Server        | 444/servers/windows          |  4  |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 5.0 for Windows                | 500/windows                  | 4/5 |\n"
+           "|                                      | 500/winold/windows           | 4/5 |\n"
+           "| DrWeb 5.0 Security Space for Windows | 500/sspace/windows           | 4/5 |\n"
+           "| DrWeb 5.0 for Windows Server         | 500/servers/windows          | 4/5 |\n"
+           "|                                      | 500/servers/nt4srv/windows   | 4/5 |\n"
+           "| DrWebWCL 5.0                         | 500/winconsole/windows       | 4/5 |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 6.0 for Windows                | x86/600/av/windows           | 4/5 |\n"
+           "|                                      | x64/600/av/windows           | 4/5 |\n"
+           "| DrWeb 6.0 Security Space for Windows | x86/600/sspace/windows       | 4/5 |\n"
+           "|                                      | x64/600/sspace/windows       | 4/5 |\n"
+           "| DrWeb 6.0 for Windows Server         | x86/600/servers/windows      | 4/5 |\n"
+           "|                                      | x64/600/servers/windows      | 4/5 |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 5.0/6.0 for Unix               | unix/500                     | 4/5 |\n"
+           "| DrWeb 6.0/8.0 for Unix               | unix/700                     | 4/5 |\n"
+           "| DrWeb 9.0 for Unix                   | unix/900                     | 4/5 |\n"
+           "| DrWeb 10.0/10.1 for Unix             | unix/1000/vdb                | 4/5 |\n"
+           "|                                      | unix/1000/dws                | 4/5 |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 9.0 LiveDisk                   | livecd/900/windows           | 4/5 |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 7.0 for Windows                | xmlzone/release/700/av       |  7  |\n"
+           "| DrWeb 7.0 Security Space for Windows | xmlzone/release/700/sspace   |  7  |\n"
+           "| DrWeb 7.0 for Windows Server         | xmlzone/release/700/servers  |  7  |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 8.0 for Windows                | xmlzone/release/800/av       |  7  |\n"
+           "| DrWeb 8.0 Security Space for Windows | xmlzone/release/800/sspace   |  7  |\n"
+           "| DrWeb 8.0 for Windows Server         | xmlzone/release/800/servers  |  7  |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 9.0/9.1 for Windows            | xmlzone/release/900/windows  |  7  |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 10.0 for Windows               | xmlzone/release/1000/windows |  7  |\n"
+           "| DrWeb 10.0 Beta for Windows          | xmlzone/beta/1000/windows    |  7  |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 11.0 for Windows               | xmlzone/release/1100/windows |  7  |\n"
+           "| DrWeb 11.0 Beta for Windows          | xmlzone/beta/1100/windows    |  7  |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 6.0-8.0 for Android            | android/6.1/drwebce.lst      |  A  |\n"
+           "| DrWeb 9.0 for Android                | android/9/version.lst        |  A  |\n"
+           "| DrWeb 10.0 for Android               | android/10/version.lst       |  A  |\n"
+           "| DrWeb 10.1 for Android               | android/10.1/version.lst     |  A  |\n"
+           "|--------------------------------------+------------------------------+-----|\n");
 }
 
 /* Show help hint message */

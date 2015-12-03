@@ -84,7 +84,7 @@ void show_help()
            "  update.msk10.drweb.com   update.msk11.drweb.com   update.msk12.drweb.com\n"
            "  update.msk13.drweb.com   update.msk14.drweb.com   update.msk15.drweb.com\n"
            "  update.us.drweb.com      update.us1.drweb.com     update.fr1.drweb.com\n"
-           "  update.kz.drweb.com      update.nsk1.drweb.com\n");
+           "  update.kz.drweb.com      update.nsk1.drweb.com    update.geo.drweb.com\n");
     printf("\n");
     printf("Known remote directories and update protocol versions:\n");
     printf("\n");

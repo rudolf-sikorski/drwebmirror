@@ -56,6 +56,8 @@ int8_t use_proxy_auth;
 char proxy_address[256];
 uint16_t proxy_port;
 char proxy_auth[77];
+/* Keep-Alive connection descriptor */
+int sock_fd_ka;
 
 /* Close connection */
 void conn_close(int * sock_fd)
@@ -65,6 +67,29 @@ void conn_close(int * sock_fd)
 #else
     shutdown(* sock_fd, SHUT_RDWR);
     close(* sock_fd);
+#endif
+    sock_fd_ka = -1;
+}
+
+/* Startup network */
+void conn_startup()
+{
+#if defined(_WIN32)
+    WSADATA wsa_data;
+    WORD wsa_ver = MAKEWORD(1, 1);
+    memset(& wsa_data, 0, sizeof(WSADATA));
+    WSAStartup(wsa_ver, & wsa_data);
+#endif
+    sock_fd_ka = -1;
+}
+
+/* Cleanup network */
+void conn_cleanup()
+{
+    if(sock_fd_ka >= 0)
+        conn_close(& sock_fd_ka);
+#if defined(_WIN32)
+    WSACleanup();
 #endif
 }
 
@@ -232,11 +257,13 @@ int conn_get(const char * filename)
     char filename_dl[STRBUFSIZE];
     char servername_dl[256];
     uint16_t serverport_dl = serverport;
+    char conn_ka[11];
 
     buffer = (char *)calloc(NETBUFSIZE + 4, sizeof(char));
 
     strncpy(filename_dl, filename, sizeof(filename_dl) - 1);
     strncpy(servername_dl, servername, sizeof(servername_dl) - 1);
+    strcpy(conn_ka, "Keep-Alive");
 
     printf("Downloading %s\n", filename);
 
@@ -244,18 +271,28 @@ redirect: /* Goto here if 30x received */
     status = -1;
     msgbegin = 0;
 
+    if(strcmp(servername, servername_dl) != 0 || serverport != serverport_dl)
+        strcpy(conn_ka, "close");
+
     if(use_proxy == 1)
     {
-        if(conn_open(& sock_fd, proxy_address, proxy_port) != EXIT_SUCCESS) /* Open connection */
+        if(sock_fd_ka < 0)
         {
-            free(buffer);
-            return EXIT_FAILURE;
+            if(conn_open(& sock_fd, proxy_address, proxy_port) != EXIT_SUCCESS) /* Open connection */
+            {
+                free(buffer);
+                return EXIT_FAILURE;
+            }
+        }
+        else
+        {
+            sock_fd = sock_fd_ka;
         }
 
         sprintf(buffer,
                 "GET http://%s:%u/%s HTTP/1.1\r\n"
-                "Proxy-Connection: close\r\n",
-                servername_dl, (unsigned)serverport_dl, filename_dl);
+                "Proxy-Connection: %s\r\n",
+                servername_dl, (unsigned)serverport_dl, filename_dl, conn_ka);
         if(use_proxy_auth == 1)
             sprintf(buffer + strlen(buffer),
                     "Proxy-Authorization: Basic %s\r\n",
@@ -264,10 +301,17 @@ redirect: /* Goto here if 30x received */
     }
     else
     {
-        if(conn_open(& sock_fd, servername_dl, serverport_dl) != EXIT_SUCCESS) /* Open connection */
+        if(sock_fd_ka < 0)
         {
-            free(buffer);
-            return EXIT_FAILURE;
+            if(conn_open(& sock_fd, servername_dl, serverport_dl) != EXIT_SUCCESS) /* Open connection */
+            {
+                free(buffer);
+                return EXIT_FAILURE;
+            }
+        }
+        else
+        {
+            sock_fd = sock_fd_ka;
         }
 
         sprintf(buffer, "GET /%s HTTP/1.1\r\n", filename_dl);
@@ -290,9 +334,9 @@ redirect: /* Goto here if 30x received */
                 syshash);
     sprintf(buffer + strlen(buffer),
             "User-Agent: %s\r\n"
-            "Connection: close\r\n"
+            "Connection: %s\r\n"
             "Cache-Control: no-cache\r\n\r\n",
-            useragent);
+            useragent, conn_ka);
 
     request_len = strlen(buffer);
     if(more_verbose)
@@ -390,16 +434,16 @@ redirect: /* Goto here if 30x received */
             if(status == EXIT_FAILURE)
             {
                 fprintf(ERRFP, "Error with recv(): Can't parse response\n");
-                conn_close(&sock_fd);
+                if(sock_fd_ka < 0)
+                    conn_close(&sock_fd);
                 free(buffer);
                 return status;
             }
 
             /* Redirect */
             /* Warning: 300 work only if server set Location field */
-            if(status >= 300 && status <= 303 && redirect_num < MAX_REDIRECT)
+            if(((status >= 300 && status <= 303) || status == 307) && redirect_num < MAX_REDIRECT)
             {
-                conn_close(&sock_fd);
                 redirect_num++;
                 while((tmp = strchr(bufpos, '\r')) != NULL && tmp - 2 != strstr(bufpos - 2, "\r\n\r\n"))
                 {
@@ -435,6 +479,10 @@ redirect: /* Goto here if 30x received */
                 }
                 if(verbose)
                     printf("Redirected (%d) to http://%s:%u/%s\n", status, servername_dl, (unsigned)serverport_dl, filename_dl);
+
+                if(strcmp(servername, servername_dl) != 0 || serverport != serverport_dl)
+                    conn_close(&sock_fd);
+
                 goto redirect;
             }
 
@@ -458,14 +506,6 @@ redirect: /* Goto here if 30x received */
             */
             if(status == 600)
                 fprintf(ERRFP, "Error: License key file is key from an unregistered version.\n");
-
-            /* Something wrong */
-            if(status != 200)
-            {
-                conn_close(&sock_fd);
-                free(buffer);
-                return status;
-            }
         }
 
         while((tmp = strchr(bufpos, '\r')) != NULL && tmp - 2 != strstr(bufpos - 2, "\r\n\r\n"))
@@ -475,7 +515,15 @@ redirect: /* Goto here if 30x received */
             sscanf(bufpos, "%[^\r]", field_content);
             bufpos += strlen(field_content) + 2;
 
-            if(strcmp(field_name, "Content-Length") == 0)
+            if(strcmp(field_name, "Connection") == 0)
+            {
+                to_lowercase(field_content);
+                if(strcmp(field_content, "keep-alive") == 0 && strcmp(servername, servername_dl) == 0)
+                    sock_fd_ka = sock_fd; /* Server supports keep-alive */
+                else
+                    sock_fd_ka = -1;
+            }
+            else if(strcmp(field_name, "Content-Length") == 0)
             {
                 sscanf(field_content, "%lu", & msgsize);
             }
@@ -544,17 +592,35 @@ redirect: /* Goto here if 30x received */
         }
     }
 
-    if(more_verbose) printf("[");
+    /* Something wrong */
+    if(status != 200 && status != 203)
+    {
+        if(sock_fd_ka < 0)
+            conn_close(&sock_fd);
+        free(buffer);
+        return status;
+    }
+
+    if(more_verbose)
+    {
+        printf("[");
+        fflush(stdout);
+    }
     fp = fopen(filename, "wb"); /* Open result file */
     if(!fp)
     {
         if(more_verbose) printf("\n\n");
         fprintf(ERRFP, "Error with fopen() on %s\n", filename);
-        conn_close(&sock_fd);
+        if(sock_fd_ka < 0)
+            conn_close(&sock_fd);
         free(buffer);
         return EXIT_FAILURE;
     }
-    if(more_verbose) printf("O");
+    if(more_verbose)
+    {
+        printf("O");
+        fflush(stdout);
+    }
 
     if(bufpos != bufend) /* Write content */
     {
@@ -566,7 +632,11 @@ redirect: /* Goto here if 30x received */
             if(more_verbose) printf("\n\n");
             fprintf(ERRFP, "Warning: Not all bytes was written\n");
         }
-        if(more_verbose) printf("W");
+        if(more_verbose)
+        {
+            printf("W");
+            fflush(stdout);
+        }
     }
 
     memset(buffer, 0, sizeof(char) * NETBUFSIZE);
@@ -588,21 +658,34 @@ redirect: /* Goto here if 30x received */
             free(buffer);
             return EXIT_FAILURE;
         }
-        if(more_verbose) printf("R");
+        if(more_verbose)
+        {
+            printf("R");
+            fflush(stdout);
+        }
 
         if(fwrite(buffer, sizeof(char), recv_count, fp) != (size_t)recv_count)
         {
             if(more_verbose) printf("\n\n");
             fprintf(ERRFP, "Warning: Not all bytes was written\n");
         }
-        if(more_verbose) printf("W");
+        if(more_verbose)
+        {
+            printf("W");
+            fflush(stdout);
+        }
         msgcurr += recv_count;
     }
 
-    conn_close(&sock_fd); /* Close connection */
+    if(sock_fd_ka < 0)
+        conn_close(&sock_fd); /* Close connection */
     fclose(fp);
     free(buffer);
-    if(more_verbose) printf("]\n\n");
+    if(more_verbose)
+    {
+        printf("]\n\n");
+        fflush(stdout);
+    }
 
     if(lastmod && set_mtime(filename, lastmod) != EXIT_SUCCESS) /* Set last modification time */
         return EXIT_FAILURE;
@@ -618,15 +701,33 @@ int download(const char * filename)
     do
     {
         status = conn_get(filename);
-        counter++;
+        switch(status)
+        {
+        /* Correctable error */
+        case EXIT_FAILURE:
+        case 408:
+        case 413:
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+            sleep(REPEAT_SLEEP);
+            counter++;
+            break;
+        /* No error or fatal error */
+        default:
+            counter += MAX_REPEAT;
+            break;
+        }
     }
     while(counter < MAX_REPEAT && status != EXIT_SUCCESS && status != 404);
+    if(status == EXIT_SUCCESS) /* Download complete */
+        return DL_DOWNLOADED;
     if(status == 404) /* Not found */
         return DL_NOT_FOUND;
-    if(counter >= MAX_REPEAT)
+    if(status != EXIT_FAILURE)
     {
-        if(status != EXIT_FAILURE)
-            fprintf(ERRFP, "Error: Server response %d", status);
+        fprintf(ERRFP, "Error: Server response %d", status);
         switch(status)
         {
         case 100:
@@ -743,6 +844,9 @@ int download(const char * filename)
         case 503:
             fprintf(ERRFP, " Service Unavailable\n");
             break;
+        case 504:
+            fprintf(ERRFP, " Gateway Timeout\n");
+            break;
         case 505:
             fprintf(ERRFP, " HTTP Version Not Supported\n");
             break;
@@ -750,9 +854,8 @@ int download(const char * filename)
             fprintf(ERRFP, "\n");
             break;
         }
-        return DL_FAILED;
     }
-    return DL_DOWNLOADED;
+    return DL_FAILED;
 }
 
 /* Download file <filename> and compare checksum <checksum_base>

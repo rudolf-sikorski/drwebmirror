@@ -21,9 +21,6 @@
 #if !defined(_WIN32)
 #include <signal.h>
 #endif
-#if defined(_WIN32)
-#include <winsock.h>
-#endif
 
 #define OPT_KEYFILE      0x01
 #define OPT_USER         0x02
@@ -202,10 +199,6 @@ int main(int argc, char * argv[])
     double time_exiec;
     char * inp_user = NULL, * inp_md5 = NULL;
     int status = EXIT_FAILURE;
-#if defined(_WIN32)
-    WSADATA wsa_data;
-    WORD wsa_ver = MAKEWORD(1, 1);
-#endif
     char * proxy_user = NULL, * proxy_pass = NULL;
 
 #if !defined(_WIN32)
@@ -601,10 +594,7 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
-#if defined(_WIN32)
-    memset(& wsa_data, 0, sizeof(WSADATA));
-    WSAStartup(wsa_ver, & wsa_data);
-#endif
+    conn_startup();
 
     printf("---------- Update bases (v%c) ----------\n", proto);
     printf("Date:  %s\n", time3);
@@ -648,9 +638,7 @@ int main(int argc, char * argv[])
         break;
     }
 
-#if defined(_WIN32)
-    WSACleanup();
-#endif
+    conn_cleanup();
 
     if(tree) avl_dealloc(tree);
     if(status != EXIT_SUCCESS)

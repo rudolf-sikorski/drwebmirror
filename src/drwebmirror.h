@@ -141,6 +141,10 @@ int updateA();
 #define DL_SUCCESS(st) ((st)==(DL_EXIST)||(st)==(DL_DOWNLOADED))
 /* Get file <filename> from server */
 int conn_get(const char * filename);
+/* Startup network */
+void conn_startup();
+/* Cleanup network */
+void conn_cleanup();
 /* Download file <filename> */
 int download(const char * filename);
 /* Download file <filename> and compare checksum <checksum_base>

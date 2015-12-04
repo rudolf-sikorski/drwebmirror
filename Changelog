@@ -1,3 +1,18 @@
+[v1.10] - 04 Dec 2015
+* Ported to Windows (Native, MinGW)
+* Added basic support of HTTP proxy
+* Added support of Keep-Alive connection
+* Added support of DrWeb 9.1 for Windows
+* Added support of DrWeb 10.1 for Unix
+* Added support of DrWeb 10.1 for Android
+* Deleted Code::Blocks project file
+* Added list of known update servers
+* Added support of 307 redirect response
+* Added support of 203 response
+* Disabled repeat when fatal error occur
+* Added delay when correctable error occur
+* Fixed possible bug with send()
+
 [v1.9] - 14 Sep 2015
 * Added support of DrWeb 10 for Android
 * Dropped support of DrWeb 9.0 Beta for Windows

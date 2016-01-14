@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -54,23 +54,22 @@ void show_help()
            "Usage: drwebmirror <options>\n"
            "\n"
            "Options:\n"
-           "  -k FILE,    --keyfile=FILE         set key file\n"
-           "  -u NUMBER,  --user=NUMBER          set UserID number from key file\n"
-           "  -m STRING,  --md5=STRING           set MD5 sum of key file\n"
-           "  -H STRING,  --syshash=STRING       set X-DrWeb-SysHash header\n"
-           "  -a STRING,  --agent=STRING         set custom User Agent\n"
-           "  -s ADDRESS, --server=ADDRESS       set update server\n"
-           "  -P NUMBER,  --port=NUMBER          set update server port\n"
-           "  -p PROTO,   --proto=PROTO          set update protocol (4, 5, 7 or A)\n"
-           "  -r PATH,    --remote=PATH          set remote directory or file\n"
-           "  -l DIR,     --local=DIR            set local directory\n"
-           "              --proxy=ADDRESS:PORT   set http proxy\n"
-           "              --proxy-user=USER      set username for http proxy\n"
-           "              --proxy-password=PASS  set password for http proxy\n"
-           "  -f,         --fast                 use fast checksums checking (dangerous)\n"
-           "  -v,         --verbose              show verbose output\n"
-           "  -V,         --verbose-full         show even more verbose output\n"
-           "  -h,         --help                 show this help\n"
+           "  -k,  --keyfile=FILE           set key file\n"
+           "  -u,  --user=NUMBER            set UserID number from key file\n"
+           "  -m,  --md5=STRING             set MD5 sum of key file\n"
+           "  -H,  --syshash=STRING         set X-DrWeb-SysHash header\n"
+           "  -a,  --agent=STRING           set custom User Agent\n"
+           "  -s,  --server=ADDRESS[:PORT]  set update server address and port\n"
+           "  -p,  --proto=PROTO            set update protocol (4, 5, 7 or A)\n"
+           "  -r,  --remote=PATH            set remote directory or file\n"
+           "  -l,  --local=DIR              set local directory\n"
+           "       --proxy=ADDRESS[:PORT]   set http proxy address and port\n"
+           "       --proxy-user=USER        set username for http proxy\n"
+           "       --proxy-password=PASS    set password for http proxy\n"
+           "  -f,  --fast                   use fast checksums checking (dangerous)\n"
+           "  -v,  --verbose                show verbose output\n"
+           "  -V,  --verbose-full           show even more verbose output\n"
+           "  -h,  --help                   show this help\n"
            "\n"
            "Example:\n"
            "\n"
@@ -236,7 +235,7 @@ int main(int argc, char * argv[])
                     opt = OPT_AGENT;
                 else if(strstr(argv[i] + 2, "server") == argv[i] + 2)
                     opt = OPT_SERVER;
-                else if(strstr(argv[i] + 2, "port") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "port") == argv[i] + 2) /* Deprecated */
                     opt = OPT_PORT;
                 else if(strstr(argv[i] + 2, "proto") == argv[i] + 2)
                     opt = OPT_PROTO;
@@ -301,7 +300,7 @@ int main(int argc, char * argv[])
                     opt = OPT_AGENT;
                 else if(argv[i][1] == 's')
                     opt = OPT_SERVER;
-                else if(argv[i][1] == 'P')
+                else if(argv[i][1] == 'P') /* Deprecated */
                     opt = OPT_PORT;
                 else if(argv[i][1] == 'p')
                     opt = OPT_PROTO;
@@ -373,7 +372,7 @@ int main(int argc, char * argv[])
             o_s++;
             strncpy(servername, optval, sizeof(servername) - 1);
             break;
-        case OPT_PORT:
+        case OPT_PORT: /* Deprecated */
             o_P++;
             serverport = atoi(optval);
             break;
@@ -458,6 +457,16 @@ int main(int argc, char * argv[])
 
     if(!o_s)
         strncpy(servername, DEF_SERVER, sizeof(servername) - 1);
+    else
+    {
+        char * delim = strchr(servername, ':');
+        if(delim)
+        {
+            * delim = '\0';
+            serverport = atoi(++delim);
+            o_P++;
+        }
+    }
 
     if(!o_k)
     {
@@ -539,6 +548,16 @@ int main(int argc, char * argv[])
     }
     else
         serverport = 80;
+
+    if(!o_pr)
+    {
+        char * http_proxy_env = getenv("http_proxy");
+        if(http_proxy_env)
+        {
+            strncpy(proxy_address, http_proxy_env, sizeof(proxy_address) - 1);
+            o_pr++;
+        }
+    }
 
     if(o_pr)
     {

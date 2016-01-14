@@ -140,8 +140,8 @@ void show_help()
            "|--------------------------------------+------------------------------+-----|\n"
            "| DrWeb 6.0-8.0 for Android            | android/6.1/drwebce.lst      |  A  |\n"
            "| DrWeb 9.0 for Android                | android/9/version.lst        |  A  |\n"
-           "| DrWeb 10.0 for Android               | android/10/version.lst       |  A  |\n"
-           "| DrWeb 10.1 for Android               | android/10.1/version.lst     |  A  |\n"
+           "| DrWeb 10.0 for Android/BlackBerry    | android/10/version.lst       |  A  |\n"
+           "| DrWeb 10.1 for Android/BlackBerry    | android/10.1/version.lst     |  A  |\n"
            "|--------------------------------------+------------------------------+-----|\n");
 }
 

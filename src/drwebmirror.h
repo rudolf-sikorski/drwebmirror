@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -23,8 +23,8 @@
 /* Begin of custom defines block */
 #define  PROG_VERSION   "1.10"
 #define  LOCKFILENAME   "drwebmirror.lock"
-#define  DEF_USERID     "0117974833"
-#define  DEF_MD5SUM     "c41fca5271008eb5f94d308b99a896a7"
+#define  DEF_USERID     "0125742880"
+#define  DEF_MD5SUM     "8e66ca120e1a786b191da63524fa719b"
 #define  DEF_SERVER     "update.drweb.com"
 #define  DEF_USERAGENT  "DrWebUpdate-6.00.12.03291 (windows: 6.01.7601)"
 #define  MAX_REPEAT     5

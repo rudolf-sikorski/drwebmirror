@@ -12,6 +12,7 @@ SOURCES = \
 	src/checksum.c \
 	src/drwebmirror.c \
 	src/avltree/avltree.c \
+	src/strlcpy/strlcpy.c \
 	src/crc32/crc32.c \
 	src/md5/md5c.c \
 	src/sha256/sha256.c \

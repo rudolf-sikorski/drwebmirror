@@ -118,6 +118,8 @@ void sighup_handler(int i);
 void to_lowercase(char * str);
 /* Base64 encoding (RFC 2045) */
 size_t base64_encode(const char * in, char * out);
+/* Size-bounded string copying */
+size_t bsd_strlcpy(char * dst, const char * src, size_t dsize);
 
 /* Drwebmirror */
 /* Get UserID and MD5 sum from keyfile */

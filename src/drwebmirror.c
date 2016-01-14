@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -69,7 +69,7 @@ int parse_keyfile(char * filename)
 
     fclose(fp);
 
-    strcpy(key_userid, strchr(str, '=') + 1);
+    bsd_strlcpy(key_userid, strchr(str, '=') + 1, sizeof(key_userid));
 
     if(md5sum(filename, key_md5sum) != EXIT_SUCCESS) /* MD5 sum */
         return EXIT_FAILURE;
@@ -103,7 +103,7 @@ void cache4()
             * strchr(filename, ',') = '\0';
             tmp = strchr(filename, '|'); /* if some as "!drwreg.exe|-xi, FE7E4B36" */
             if(tmp) * tmp = '\0';
-            strcpy(crc_base, strchr(buf, ',') + 2);
+            bsd_strlcpy(crc_base, strchr(buf, ',') + 2, sizeof(crc_base));
             while(crc_base[0] == '0') /* if base crc32 beign with zero */
                 memmove(crc_base, crc_base + 1, sizeof(char) * strlen(crc_base));
             tree = avl_insert(tree, filename, crc_base);
@@ -207,7 +207,7 @@ repeat4: /* Goto here if checksum mismatch */
             * strchr(filename, ',') = '\0';
             tmp = strchr(filename, '|'); /* if some as "!drwreg.exe|-xi, FE7E4B36" */
             if(tmp) * tmp = '\0';
-            strcpy(crc_base, strchr(buf, ',') + 2);
+            bsd_strlcpy(crc_base, strchr(buf, ',') + 2, sizeof(crc_base));
             while(crc_base[0] == '0') /* if base crc32 beign with zero */
                 memmove(crc_base, crc_base + 1, sizeof(char) * strlen(crc_base));
 
@@ -294,8 +294,7 @@ void cache5()
             * strchr(filename, ',') = '\0';
             tmp = strchr(filename, '|'); /* if some as "!drwreg.exe|-xi, ..." */
             if(tmp) * tmp = '\0';
-            strncpy(sha_base, strchr(buf, ',') + 2, 64);
-            sha_base[64] = '\0';
+            bsd_strlcpy(sha_base, strchr(buf, ',') + 2, sizeof(sha_base));
             tree = avl_insert(tree, filename, sha_base);
             strcat(filename, ".lzma");
             tree = avl_insert(tree, filename, sha_base);
@@ -403,8 +402,7 @@ repeat5: /* Goto here if checksum mismatch */
             * strchr(filename, ',') = '\0';
             tmp = strchr(filename, '|'); /* if some as "!drwreg.exe|-xi, ..." */
             if(tmp) * tmp = '\0';
-            strncpy(sha_base, strchr(buf, ',') + 2, 64);
-            sha_base[64] = '\0';
+            bsd_strlcpy(sha_base, strchr(buf, ',') + 2, sizeof(sha_base));
             tmp = strrchr(buf, ',');
             if(tmp)
             {
@@ -502,8 +500,7 @@ void cache7(const char * file, const char * directory)
         {
             char base_hash[65];
             char filename[STRBUFSIZE];
-            strncpy(base_hash, strstr(buf, "hash=\"") + 6, 64);
-            base_hash[64] = '\0';
+            bsd_strlcpy(base_hash, strstr(buf, "hash=\"") + 6, sizeof(base_hash));
             sprintf(filename, "%s/%s", directory, strstr(buf, "name=\"") + 6);
             * strchr(filename, '\"') = '\0';
             tree = avl_insert(tree, filename, base_hash);
@@ -603,8 +600,7 @@ repeat7: /* Goto here if hashsum mismatch */
 
             if(strstr(buf, "<xml") != NULL) is_xml = 1;
 
-            strncpy(base_hash, strstr(buf, "hash=\"") + 6, 64);
-            base_hash[64] = '\0';
+            bsd_strlcpy(base_hash, strstr(buf, "hash=\"") + 6, sizeof(base_hash));
             sprintf(filename, "%s/%s", remotedir, strstr(buf, "name=\"") + 6);
             * strchr(filename, '\"') = '\0';
             if((tmpchr = strstr(buf, "size=\"")) != NULL)
@@ -622,7 +618,7 @@ repeat7: /* Goto here if hashsum mismatch */
             else if(tree && counter_global == 0 && is_xml)
             {
                 char directory[STRBUFSIZE];
-                strncpy(directory, filename, sizeof(directory) - 1);
+                bsd_strlcpy(directory, filename, sizeof(directory));
                 * strrchr(directory, '/') = '\0';
                 cache7(filename, directory);
             }
@@ -657,7 +653,7 @@ repeat7: /* Goto here if hashsum mismatch */
                 int8_t xflag = 1;
                 char * pp = strrchr(filename, '/');
                 * pp = '\0';
-                strncpy(directory, filename, sizeof(directory) - 1);
+                bsd_strlcpy(directory, filename, sizeof(directory));
                 * pp = '/';
 
                 while(xflag)
@@ -671,8 +667,7 @@ repeat7: /* Goto here if hashsum mismatch */
                         off_t xfilesize = -1;
                         unsigned long xfilesize_ul;
 
-                        strncpy(base_hash, strstr(buf, "hash=\"") + 6, 64);
-                        base_hash[64] = '\0';
+                        bsd_strlcpy(base_hash, strstr(buf, "hash=\"") + 6, sizeof(base_hash));
                         sprintf(xfilename, "%s/%s", directory, strstr(buf, "name=\"") + 6);
                         * strchr(xfilename, '\"') = '\0';
                         if((tmpchr = strstr(buf, "size=\"")) != NULL)
@@ -772,8 +767,7 @@ int updateA()
     char main_hash_old[65], main_hash_new[65];
     off_t main_size_old = 0, main_size_new = 0;
 
-    strncpy(real_dir, remotedir, sizeof(real_dir) - 1);
-    real_dir[sizeof(real_dir) - 1] = '\0';
+    bsd_strlcpy(real_dir, remotedir, sizeof(real_dir));
     * (strrchr(real_dir, '/')) = '\0';
     if(make_path(real_dir) != EXIT_SUCCESS) /* Make all needed directory */
     {

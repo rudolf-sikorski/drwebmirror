@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -261,9 +261,9 @@ int conn_get(const char * filename)
 
     buffer = (char *)calloc(NETBUFSIZE + 4, sizeof(char));
 
-    strncpy(filename_dl, filename, sizeof(filename_dl) - 1);
-    strncpy(servername_dl, servername, sizeof(servername_dl) - 1);
-    strcpy(conn_ka, "Keep-Alive");
+    bsd_strlcpy(filename_dl, filename, sizeof(filename_dl));
+    bsd_strlcpy(servername_dl, servername, sizeof(servername_dl));
+    bsd_strlcpy(conn_ka, "Keep-Alive", sizeof(conn_ka));
 
     printf("Downloading %s\n", filename);
 
@@ -272,7 +272,7 @@ redirect: /* Goto here if 30x received */
     msgbegin = 0;
 
     if(strcmp(servername, servername_dl) != 0 || serverport != serverport_dl)
-        strcpy(conn_ka, "close");
+        bsd_strlcpy(conn_ka, "close", sizeof(conn_ka));
 
     if(use_proxy == 1)
     {
@@ -462,7 +462,7 @@ redirect: /* Goto here if 30x received */
                             filename_beg = strchr(servername_beg, '/');
 
                             if(* (filename_beg + 1) != '\0')
-                                strncpy(filename_dl, filename_beg + 1, sizeof(filename_dl) - 1);
+                                bsd_strlcpy(filename_dl, filename_beg + 1, sizeof(filename_dl));
                             else
                                 strcpy(filename_dl, "/");
                             * filename_beg = '\0';
@@ -473,7 +473,7 @@ redirect: /* Goto here if 30x received */
                             }
                             else
                                 serverport_dl = 80;
-                            strncpy(servername_dl, servername_beg, sizeof(servername_dl) - 1);
+                            bsd_strlcpy(servername_dl, servername_beg, sizeof(servername_dl));
                         }
                     }
                 }

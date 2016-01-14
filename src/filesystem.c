@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -85,7 +85,7 @@ int make_path(const char * path)
     int status = EXIT_SUCCESS;
     char tmppath[STRBUFSIZE];
     char * curr = tmppath;
-    strncpy(tmppath, path, sizeof(tmppath) - 1);
+    bsd_strlcpy(tmppath, path, sizeof(tmppath));
 
     while(flag)
     {
@@ -235,18 +235,18 @@ FILE * fopen_temp(char * filename)
             char sb[L_tmpnam];
             char * nm = strrchr(filename, '/');
             if(nm != NULL)
-                strncpy(sb, nm, sizeof(sb) - 1);
+                bsd_strlcpy(sb, nm, sizeof(sb));
             else
-                strncpy(sb, filename, sizeof(sb) - 1);
+                bsd_strlcpy(sb, filename, sizeof(sb));
             sprintf(filename, "%s%s", getenv("TEMP"), sb);
             tmpf = fopen(filename, "wb+");
 
             if(tmpf == NULL) /* Hmm, maybe TMP instead of TEMP will work? */
             {
                 if(nm != NULL)
-                    strncpy(sb, nm, sizeof(sb) - 1);
+                    bsd_strlcpy(sb, nm, sizeof(sb));
                 else
-                    strncpy(sb, filename, sizeof(sb) - 1);
+                    bsd_strlcpy(sb, filename, sizeof(sb));
                 sprintf(filename, "%s%s", getenv("TMP"), sb);
                 tmpf = fopen(filename, "wb+");
 

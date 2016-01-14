@@ -159,19 +159,19 @@ void detect_useragent(const char * dir)
     {
         /* DrWeb Light 7.00.0, Android 2.3.7 */
         if(strcmp(dir, "android/6.1/drwebce.lst") == 0)
-            strncpy(useragent, "Dr.Web Updater Symbian/1.0", sizeof(useragent) - 1);
+            bsd_strlcpy(useragent, "Dr.Web Updater Symbian/1.0", sizeof(useragent));
         /* DrWeb Light 9.00.2(0), Android 2.3.7 */
         else if(strcmp(dir, "android/9/version.lst") == 0)
-            strncpy(useragent, "Dr.Web anti-virus Light Version: 9.00.2.7039 Device model: LG-P500 Firmware version: 2.3.7", sizeof(useragent) - 1);
+            bsd_strlcpy(useragent, "Dr.Web anti-virus Light Version: 9.00.2.7039 Device model: LG-P500 Firmware version: 2.3.7", sizeof(useragent));
         /* DrWeb Security Space 10.0.3(1), Android 4.4.2 */
         else if(strcmp(dir, "android/10/version.lst") == 0)
-            strncpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 10.0.3.14009 Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent) - 1);
+            bsd_strlcpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 10.0.3.14009 Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent));
         /* DrWeb Security Space 10.1.1(1), Android 4.4.2 */
         else if(strcmp(dir, "android/10.1/version.lst") == 0)
-            strncpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 10.1.1.14011 Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent) - 1);
+            bsd_strlcpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 10.1.1.14011 Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent));
     }
     if(useragent[0] == '\0')
-        strncpy(useragent, DEF_USERAGENT, sizeof(useragent) - 1);
+        bsd_strlcpy(useragent, DEF_USERAGENT, sizeof(useragent));
 }
 
 /* Autodetect update protocol */
@@ -362,15 +362,15 @@ int main(int argc, char * argv[])
             break;
         case OPT_SYSHASH:
             o_H++;
-            strncpy(syshash, optval, sizeof(syshash) - 1);
+            bsd_strlcpy(syshash, optval, sizeof(syshash));
             break;
         case OPT_AGENT:
             o_a++;
-            strncpy(useragent, optval, sizeof(useragent) - 1);
+            bsd_strlcpy(useragent, optval, sizeof(useragent));
             break;
         case OPT_SERVER:
             o_s++;
-            strncpy(servername, optval, sizeof(servername) - 1);
+            bsd_strlcpy(servername, optval, sizeof(servername));
             break;
         case OPT_PORT: /* Deprecated */
             o_P++;
@@ -383,7 +383,7 @@ int main(int argc, char * argv[])
             break;
         case OPT_REMOTE:
             o_r++;
-            strncpy(remotedir, optval, sizeof(remotedir) - 1);
+            bsd_strlcpy(remotedir, optval, sizeof(remotedir));
             break;
         case OPT_LOCAL:
             o_l++;
@@ -391,7 +391,7 @@ int main(int argc, char * argv[])
             break;
         case OPT_PROXY:
             o_pr++;
-            strncpy(proxy_address, optval, sizeof(proxy_address) - 1);
+            bsd_strlcpy(proxy_address, optval, sizeof(proxy_address));
             break;
         case OPT_PROXY_USER:
             o_pru++;
@@ -456,7 +456,7 @@ int main(int argc, char * argv[])
     }
 
     if(!o_s)
-        strncpy(servername, DEF_SERVER, sizeof(servername) - 1);
+        bsd_strlcpy(servername, DEF_SERVER, sizeof(servername));
     else
     {
         char * delim = strchr(servername, ':');
@@ -495,15 +495,15 @@ int main(int argc, char * argv[])
                 return EXIT_FAILURE;
             }
 
-            strncpy(key_userid, inp_user, sizeof(key_userid) - 1);
-            strncpy(key_md5sum, inp_md5, sizeof(key_md5sum) - 1);
+            bsd_strlcpy(key_userid, inp_user, sizeof(key_userid));
+            bsd_strlcpy(key_md5sum, inp_md5, sizeof(key_md5sum));
         }
         else if(use_android == 0)
         {
 #if defined(DEF_USERID) && defined(DEF_MD5SUM)
             fprintf(ERRFP, "Warning: No key file or UserID & MD5 specified, default key value will be used.\n");
-            strncpy(key_userid, DEF_USERID, sizeof(key_userid) - 1);
-            strncpy(key_md5sum, DEF_MD5SUM, sizeof(key_md5sum) - 1);
+            bsd_strlcpy(key_userid, DEF_USERID, sizeof(key_userid));
+            bsd_strlcpy(key_md5sum, DEF_MD5SUM, sizeof(key_md5sum));
 #else
             fprintf(ERRFP, "Error: No key file or UserID & MD5 specified.\n\n");
             show_hint();
@@ -554,7 +554,7 @@ int main(int argc, char * argv[])
         char * http_proxy_env = getenv("http_proxy");
         if(http_proxy_env)
         {
-            strncpy(proxy_address, http_proxy_env, sizeof(proxy_address) - 1);
+            bsd_strlcpy(proxy_address, http_proxy_env, sizeof(proxy_address));
             o_pr++;
         }
     }

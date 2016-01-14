@@ -83,6 +83,9 @@ extern char key_md5sum[33];
 extern char servername[256];
 /* Server port */
 extern uint16_t serverport;
+/* Server auth */
+extern int8_t use_http_auth;
+extern char http_auth[77];
 /* Remote directory */
 extern char remotedir[256];
 /* User Agent */

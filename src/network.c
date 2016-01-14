@@ -41,6 +41,9 @@ extern const char * hstrerror(int err);
 char servername[256];
 /* Server port */
 uint16_t serverport;
+/* Server auth */
+int8_t use_http_auth;
+char http_auth[77];
 /* Remote directory */
 char remotedir[256];
 /* User Agent */
@@ -323,6 +326,10 @@ redirect: /* Goto here if 30x received */
             "Accept-Ranges: bytes\r\n"
             "Host: %s:%u\r\n",
             servername_dl, (unsigned)serverport_dl);
+    if(use_http_auth == 1)
+        sprintf(buffer + strlen(buffer),
+                "Authorization: Basic %s\r\n",
+                http_auth);
     if(use_android == 0)
         sprintf(buffer + strlen(buffer),
                 "X-DrWeb-Validate: %s\r\n"

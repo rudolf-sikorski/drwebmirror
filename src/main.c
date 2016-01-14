@@ -28,17 +28,19 @@
 #define OPT_SYSHASH      0x04
 #define OPT_AGENT        0x05
 #define OPT_SERVER       0x06
-#define OPT_PORT         0x07
-#define OPT_PROTO        0x08
-#define OPT_REMOTE       0x09
-#define OPT_LOCAL        0x0A
-#define OPT_PROXY        0x0B
-#define OPT_PROXY_USER   0x0C
-#define OPT_PROXY_PASS   0x0D
-#define OPT_FAST         0x0E
-#define OPT_VERBOSE      0x0F
-#define OPT_MORE_VERBOSE 0x10
-#define OPT_HELP         0x11
+#define OPT_HTTP_USER    0x07
+#define OPT_HTTP_PASS    0x08
+#define OPT_PORT         0x09
+#define OPT_PROTO        0x0A
+#define OPT_REMOTE       0x0B
+#define OPT_LOCAL        0x0C
+#define OPT_PROXY        0x0D
+#define OPT_PROXY_USER   0x0E
+#define OPT_PROXY_PASS   0x0F
+#define OPT_FAST         0x10
+#define OPT_VERBOSE      0x11
+#define OPT_MORE_VERBOSE 0x12
+#define OPT_HELP         0x13
 
 /* Flag of use verbose output */
 int8_t verbose;
@@ -60,12 +62,14 @@ void show_help()
            "  -H,  --syshash=STRING         set X-DrWeb-SysHash header\n"
            "  -a,  --agent=STRING           set custom User Agent\n"
            "  -s,  --server=ADDRESS[:PORT]  set update server address and port\n"
+           "       --http-user=USER         set username for HTTP connection\n"
+           "       --http-password=PASS     set password for HTTP connection\n"
            "  -p,  --proto=PROTO            set update protocol (4, 5, 7 or A)\n"
            "  -r,  --remote=PATH            set remote directory or file\n"
            "  -l,  --local=DIR              set local directory\n"
-           "       --proxy=ADDRESS[:PORT]   set http proxy address and port\n"
-           "       --proxy-user=USER        set username for http proxy\n"
-           "       --proxy-password=PASS    set password for http proxy\n"
+           "       --proxy=ADDRESS[:PORT]   set HTTP proxy address and port\n"
+           "       --proxy-user=USER        set username for HTTP proxy\n"
+           "       --proxy-password=PASS    set password for HTTP proxy\n"
            "  -f,  --fast                   use fast checksums checking (dangerous)\n"
            "  -v,  --verbose                show verbose output\n"
            "  -V,  --verbose-full           show even more verbose output\n"
@@ -195,6 +199,7 @@ int main(int argc, char * argv[])
     int opt = 0, i;
     int8_t o_k = 0, o_a = 0, o_s = 0, o_p = 0, o_r = 0, o_l = 0, o_v = 0, o_h = 0;
     int8_t o_u = 0, o_m = 0, o_H = 0, o_P = 0, o_V = 0, o_f = 0, o_pr = 0, o_pru = 0, o_prp = 0;
+    int8_t o_htu = 0, o_htp = 0;
     char * optval = NULL;
     char proto = '\0';
     char * workdir = NULL;
@@ -209,6 +214,7 @@ int main(int argc, char * argv[])
     char * inp_user = NULL, * inp_md5 = NULL;
     int status = EXIT_FAILURE;
     char * proxy_user = NULL, * proxy_pass = NULL;
+    char * http_user = NULL, * http_pass = NULL;
 
 #if !defined(_WIN32)
     memset(& sigact, 0, sizeof(struct sigaction));
@@ -223,39 +229,43 @@ int main(int argc, char * argv[])
         {
             if(argv[i][1] == '-') /* long option */
             {
-                if(strstr(argv[i] + 2, "keyfile") == argv[i] + 2)
+                if(strstr(argv[i] + 2, "keyfile=") == argv[i] + 2)
                     opt = OPT_KEYFILE;
-                else if(strstr(argv[i] + 2, "user") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "user=") == argv[i] + 2)
                     opt = OPT_USER;
-                else if(strstr(argv[i] + 2, "md5") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "md5=") == argv[i] + 2)
                     opt = OPT_MD5;
-                else if(strstr(argv[i] + 2, "syshash") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "syshash=") == argv[i] + 2)
                     opt = OPT_SYSHASH;
-                else if(strstr(argv[i] + 2, "agent") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "agent=") == argv[i] + 2)
                     opt = OPT_AGENT;
-                else if(strstr(argv[i] + 2, "server") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "server=") == argv[i] + 2)
                     opt = OPT_SERVER;
-                else if(strstr(argv[i] + 2, "port") == argv[i] + 2) /* Deprecated */
+                else if(strstr(argv[i] + 2, "http-user=") == argv[i] + 2)
+                    opt = OPT_HTTP_USER;
+                else if(strstr(argv[i] + 2, "http-password=") == argv[i] + 2)
+                    opt = OPT_HTTP_PASS;
+                else if(strstr(argv[i] + 2, "port=") == argv[i] + 2) /* Deprecated */
                     opt = OPT_PORT;
-                else if(strstr(argv[i] + 2, "proto") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "proto=") == argv[i] + 2)
                     opt = OPT_PROTO;
-                else if(strstr(argv[i] + 2, "remote") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "remote=") == argv[i] + 2)
                     opt = OPT_REMOTE;
-                else if(strstr(argv[i] + 2, "local") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "local=") == argv[i] + 2)
                     opt = OPT_LOCAL;
-                else if(strstr(argv[i] + 2, "proxy-user") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "proxy-user=") == argv[i] + 2)
                     opt = OPT_PROXY_USER;
-                else if(strstr(argv[i] + 2, "proxy-password") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "proxy-password=") == argv[i] + 2)
                     opt = OPT_PROXY_PASS;
-                else if(strstr(argv[i] + 2, "proxy") == argv[i] + 2)
+                else if(strstr(argv[i] + 2, "proxy=") == argv[i] + 2)
                     opt = OPT_PROXY;
-                else if(strstr(argv[i] + 2, "fast") == argv[i] + 2)
+                else if(strcmp(argv[i] + 2, "fast") == 0)
                     opt = OPT_FAST;
-                else if(strstr(argv[i] + 2, "verbose-full") == argv[i] + 2)
+                else if(strcmp(argv[i] + 2, "verbose-full") == 0)
                     opt = OPT_MORE_VERBOSE;
-                else if(strstr(argv[i] + 2, "verbose") == argv[i] + 2)
+                else if(strcmp(argv[i] + 2, "verbose") == 0)
                     opt = OPT_VERBOSE;
-                else if(strstr(argv[i] + 2, "help") == argv[i] + 2)
+                else if(strcmp(argv[i] + 2, "help") == 0)
                     opt = OPT_HELP;
                 else
                 {
@@ -267,7 +277,7 @@ int main(int argc, char * argv[])
                 if(opt == OPT_KEYFILE || opt == OPT_USER || opt == OPT_MD5 || opt == OPT_SYSHASH ||
                    opt == OPT_AGENT || opt == OPT_SERVER || opt == OPT_PORT || opt == OPT_PROTO ||
                    opt == OPT_REMOTE || opt == OPT_LOCAL || opt == OPT_PROXY || opt == OPT_PROXY_USER ||
-                   opt == OPT_PROXY_PASS)
+                   opt == OPT_PROXY_PASS || opt == OPT_HTTP_USER || opt == OPT_HTTP_PASS)
                 {
                     optval = strchr(argv[i], '=');
                     if(optval)
@@ -372,6 +382,14 @@ int main(int argc, char * argv[])
             o_s++;
             bsd_strlcpy(servername, optval, sizeof(servername));
             break;
+        case OPT_HTTP_USER:
+            o_htu++;
+            http_user = optval;
+            break;
+        case OPT_HTTP_PASS:
+            o_htp++;
+            http_pass = optval;
+            break;
         case OPT_PORT: /* Deprecated */
             o_P++;
             serverport = atoi(optval);
@@ -467,6 +485,24 @@ int main(int argc, char * argv[])
             o_P++;
         }
     }
+
+    if(o_htu && o_htp)
+    {
+        char http_auth_text[64];
+        size_t orig_len = strlen(http_user) + strlen(http_pass) + 1;
+        size_t base64_len = ((orig_len + 2) / 3 * 4) + 1;
+        if(base64_len > 76)
+        {
+            fprintf(ERRFP, "HTTP username or password is too long.\n\n");
+            return EXIT_FAILURE;
+        }
+        snprintf(http_auth_text, sizeof(http_auth_text) - 1, "%s:%s", http_user, http_pass);
+        http_auth_text[sizeof(http_auth_text) - 1] = '\0';
+        base64_encode(http_auth_text, http_auth);
+        use_http_auth = 1;
+    }
+    else
+        use_http_auth = 0;
 
     if(!o_k)
     {
@@ -642,6 +678,12 @@ int main(int argc, char * argv[])
         if(use_syshash)
             printf("Hash:  %s\n", syshash);
         printf("Agent: %s\n", useragent);
+    }
+    if(more_verbose == 1 && use_http_auth == 1)
+    {
+        printf("HTTP User:    %s\n", http_user);
+        printf("HTTP Pass:    %s\n", http_pass);
+        printf("HTTP base64:  %s\n", http_auth);
     }
     if(more_verbose == 1 && use_proxy_auth == 1)
     {

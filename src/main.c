@@ -51,7 +51,6 @@ int8_t more_verbose;
 void show_help()
 {
     printf("DrWebMirror " PROG_VERSION ", tool for create mirror of DrWeb update server.\n"
-           "Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>\n"
            "Homepage: https://fami.codefreak.ru/osp/drwebmirror\n\n"
            "Usage: drwebmirror <options>\n"
            "\n"

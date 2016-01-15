@@ -1,0 +1,29 @@
+The list of contributors of the DrWebMirror project:
+
+  * 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+      Primary developer
+
+  * 2013, Peter Zhigalov <peter.zhigalov@gmail.com>
+      Original Bash script implementation
+
+  * 2015, s0t <s0t@s0t.ru>
+      Remote directories and servers database, Android update protocol
+      description, patches and suggestions
+
+
+The list of authors of a third-party code:
+
+  * CRC32 algorithm implementation
+    1986, Gary S. Brown
+
+  * RSA Data Security, Inc. MD5 Message-Digest Algorithm
+    1991-2, RSA Data Security, Inc
+
+  * SHA256 algorithm implementation
+    2001, Tom St Denis
+
+  * LZMA SDK
+    1999-2015, Igor Pavlov
+
+  * Strlcpy implementation from OpenBSD
+    1998, 2015, Todd C. Miller <Todd.Miller@courtesan.com>

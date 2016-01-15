@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -17,7 +17,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
-   This code based on LZMA SDK v4.65, see lzma465.tar.bz2/C/LzmaUtil/LzmaUtil.c
+   This code based on LZMA SDK 15.14, see lzma1514.7z/C/Util/Lzma/LzmaUtil.c
 */
 
 #include "drwebmirror.h"
@@ -26,10 +26,6 @@
 #include "lzma/LzmaDec.h"
 
 /* Begin of functions from LzmaUtil */
-static void *SzAlloc(void *p, size_t size) { /*p = p*/(void)p; return MyAlloc(size); }
-static void SzFree(void *p, void *address) { /*p = p*/(void)p; MyFree(address); }
-static ISzAlloc g_Alloc = { SzAlloc, SzFree };
-
 #define IN_BUF_SIZE (1 << 16)
 #define OUT_BUF_SIZE (1 << 16)
 

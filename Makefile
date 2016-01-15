@@ -16,10 +16,10 @@ SOURCES = \
 	src/crc32/crc32.c \
 	src/md5/md5c.c \
 	src/sha256/sha256.c \
-	src/lzma/Alloc.c \
-	src/lzma/LzmaDec.c \
 	src/lzma/7zFile.c \
-	src/lzma/7zStream.c
+	src/lzma/7zStream.c \
+	src/lzma/Alloc.c \
+	src/lzma/LzmaDec.c
 OBJECTS = $(SOURCES:.c=.o)
 
 all: $(SOURCES) $(EXECUTABLE)

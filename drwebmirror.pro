@@ -17,10 +17,10 @@ SOURCES += \
     src/crc32/crc32.c \
     src/md5/md5c.c \
     src/sha256/sha256.c \
-    src/lzma/Alloc.c \
-    src/lzma/LzmaDec.c \
     src/lzma/7zFile.c \
-    src/lzma/7zStream.c
+    src/lzma/7zStream.c \
+    src/lzma/Alloc.c \
+    src/lzma/LzmaDec.c
 
 HEADERS += \
     src/drwebmirror.h \
@@ -28,9 +28,11 @@ HEADERS += \
     src/md5/global.h \
     src/md5/md5.h \
     src/lzma/7zFile.h \
+    src/lzma/7zTypes.h \
     src/lzma/Alloc.h \
+    src/lzma/Compiler.h \
     src/lzma/LzmaDec.h \
-    src/lzma/Types.h
+    src/lzma/Precomp.h
 
 QMAKE_CFLAGS_RELEASE -= -O2
 QMAKE_CFLAGS_RELEASE *= -O3

@@ -190,6 +190,46 @@ int delete_files(const char * directory, const char * mask)
     closedir(dfd);
     return EXIT_SUCCESS;
 #else
+    HANDLE hFind = INVALID_HANDLE_VALUE;
+    WIN32_FIND_DATAA ffd;
+    char szDir[MAX_PATH];
+    DWORD dwError = 0;
+    size_t dir_len = bsd_strlcpy(szDir, directory, MAX_PATH);
+    char * curr = szDir + dir_len++;
+    *(curr++) = '/';
+    bsd_strlcpy(curr, mask, MAX_PATH - dir_len - 1);
+    hFind = FindFirstFileA(szDir, &ffd);
+    if(hFind != INVALID_HANDLE_VALUE)
+    {
+        do
+        {
+            if(!(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+            {
+                char buf[STRBUFSIZE];
+                sprintf(buf, "%s/%s", directory, ffd.cFileName);
+                if(remove(buf) != 0)
+                    fprintf(ERRFP, "Error: Can't delete file %s/%s\n", directory, ffd.cFileName);
+            }
+        }
+        while(FindNextFileA(hFind, &ffd) != 0);
+    }
+    dwError = GetLastError();
+    if(dwError != ERROR_FILE_NOT_FOUND && dwError != ERROR_NO_MORE_FILES)
+    {
+        char * lpMsgBuf;
+        FormatMessageA(
+                    FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                    FORMAT_MESSAGE_FROM_SYSTEM |
+                    FORMAT_MESSAGE_IGNORE_INSERTS,
+                    NULL,
+                    dwError,
+                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+                    (LPSTR) &lpMsgBuf,
+                    0, NULL );
+        fprintf(ERRFP, "Error: Can't delete file %s/%s (%s)\n", directory, ffd.cFileName, lpMsgBuf);
+        LocalFree(lpMsgBuf);
+    }
+    FindClose(hFind);
     return EXIT_SUCCESS;
 #endif
 }
@@ -295,7 +335,12 @@ int do_lock(const char * directory)
     if(dir_len > sizeof(lockfile))
     {
         lockfile_curr -= strlen(LOCKFILENAME) + 2;
-        while((* lockfile_curr) != '/' && lockfile_curr != lockfile)
+#if defined(_WIN32)
+        while(((* lockfile_curr) != '/' || (* lockfile_curr) != '\\') &&
+#else
+        while((* lockfile_curr) != '/' &&
+#endif
+              lockfile_curr != lockfile)
             lockfile_curr--;
     }
     *(lockfile_curr++) = '/';

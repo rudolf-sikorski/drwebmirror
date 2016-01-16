@@ -27,3 +27,6 @@ The list of authors of a third-party code:
 
   * Strlcpy implementation from OpenBSD
     1998, 2015, Todd C. Miller <Todd.Miller@courtesan.com>
+
+  * ISO C9x compliant stdint.h and inttypes.h for Microsoft Visual Studio
+    2006-2013, Alexander Chemeris

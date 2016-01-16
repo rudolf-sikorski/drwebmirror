@@ -26,7 +26,7 @@ all: $(SOURCES) $(EXECUTABLE)
 
 .PHONY: clean distclean install uninstall
 
-$(EXECUTABLE): $(OBJECTS) 
+$(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) $(LDFLAGS) -o $@
 
 .c.o:

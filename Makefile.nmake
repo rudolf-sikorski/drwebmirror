@@ -1,0 +1,34 @@
+CFLAGS = /Ox /DNDEBUG /D_CRT_SECURE_NO_WARNINGS /MT /GS- /nologo /W3 /Isrc\msinttypes
+LDFLAGS = wsock32.lib /NOLOGO /SUBSYSTEM:CONSOLE /RELEASE /SAFESEH:NO /MANIFEST:NO
+EXECUTABLE = drwebmirror.exe
+OBJECTS = \
+	src\\main.obj \
+	src\\common.obj \
+	src\\filesystem.obj \
+	src\\network.obj \
+	src\\decompress.obj \
+	src\\checksum.obj \
+	src\\drwebmirror.obj \
+	src\\avltree\\avltree.obj \
+	src\\strlcpy\\strlcpy.obj \
+	src\\crc32\\crc32.obj \
+	src\\md5\\md5c.obj \
+	src\\sha256\\sha256.obj \
+	src\\lzma\\7zFile.obj \
+	src\\lzma\\7zStream.obj \
+	src\\lzma\\Alloc.obj \
+	src\\lzma\\LzmaDec.obj
+
+all: $(OBJECTS) $(EXECUTABLE)
+
+.c.obj:
+	cl $(CFLAGS) /c $< /Fo$@
+
+$(EXECUTABLE): $(OBJECTS)
+	link $(OBJECTS) $(LDFLAGS) /out:$@
+
+clean:
+	del /q /f $(OBJECTS) 2>nul
+
+distclean: clean
+	del /q /f $(EXECUTABLE) 2>nul

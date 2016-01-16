@@ -18,21 +18,32 @@
 */
 
 #include "drwebmirror.h"
-#if defined(_WIN32)
+#include <sys/types.h>
+#include <limits.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#if !defined (NO_POSIX_API)
+#include <sys/time.h>
+#else
+typedef int ssize_t;
+#endif
+
+#if defined (_WIN32)
 #include <winsock.h>
 #include <windows.h>
+#define send(s, buf, len, flags) (send((s), (buf), (int)(len), (flags)))
+#define recv(s, buf, len, flags) (recv((s), (buf), (int)(len), (flags)))
+#define SOCKET_BAD_VALUE (INVALID_SOCKET)
 typedef int socklen_t;
+typedef SOCKET sockfd_t;
 #else
 #include <sys/socket.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#define SOCKET_BAD_VALUE (-1)
+typedef int sockfd_t;
 #endif
-#include <sys/types.h>
-#include <limits.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/time.h>
 
 extern char * strptime(const char * buf, const char * format, struct tm * tm);
 extern const char * hstrerror(int err);
@@ -60,10 +71,20 @@ char proxy_address[256];
 uint16_t proxy_port;
 char proxy_auth[77];
 /* Keep-Alive connection descriptor */
-int sock_fd_ka;
+sockfd_t sock_fd_ka;
+
+/* Check socket status */
+int socket_good(sockfd_t * sock_fd)
+{
+#if defined(_WIN32)
+    return * sock_fd != INVALID_SOCKET;
+#else
+    return * sock_fd >= 0;
+#endif
+}
 
 /* Close connection */
-void conn_close(int * sock_fd)
+void conn_close(sockfd_t * sock_fd)
 {
 #if defined(_WIN32)
     closesocket(* sock_fd);
@@ -71,7 +92,7 @@ void conn_close(int * sock_fd)
     shutdown(* sock_fd, SHUT_RDWR);
     close(* sock_fd);
 #endif
-    sock_fd_ka = -1;
+    sock_fd_ka = SOCKET_BAD_VALUE;
 }
 
 /* Startup network */
@@ -83,21 +104,22 @@ void conn_startup()
     memset(& wsa_data, 0, sizeof(WSADATA));
     WSAStartup(wsa_ver, & wsa_data);
 #endif
-    sock_fd_ka = -1;
+    sock_fd_ka = SOCKET_BAD_VALUE;
 }
 
 /* Cleanup network */
 void conn_cleanup()
 {
-    if(sock_fd_ka >= 0)
-        conn_close(& sock_fd_ka);
+    if(socket_good(&sock_fd_ka))
+        conn_close(&sock_fd_ka);
 #if defined(_WIN32)
     WSACleanup();
 #endif
+    sock_fd_ka = SOCKET_BAD_VALUE;
 }
 
 /* Open connection */
-int conn_open(int * sock_fd, const char * server, uint16_t port)
+int conn_open(sockfd_t * sock_fd, const char * server, uint16_t port)
 {
     struct sockaddr_in sock_addr;
     struct hostent * host_info = gethostbyname(server);
@@ -125,7 +147,7 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
     }
 
     * sock_fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if(* sock_fd == -1)
+    if(!socket_good(sock_fd))
     {
 #if defined(_WIN32)
         char * wsa_error_str = NULL;
@@ -182,7 +204,7 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
     FD_ZERO(& fdset);
     FD_SET(* sock_fd, & fdset);
 
-    if(select((* sock_fd) + 1, NULL, & fdset, NULL, & tv) == 1)
+    if(select((int)((* sock_fd) + 1), NULL, & fdset, NULL, & tv) == 1)
     {
         int so_error;
         socklen_t len = sizeof(so_error);
@@ -245,7 +267,7 @@ int conn_open(int * sock_fd, const char * server, uint16_t port)
 /* Get file <filename> from server */
 int conn_get(const char * filename)
 {
-    int sock_fd;
+    sockfd_t sock_fd;
 
     char * buffer, * bufpos, * bufend;
     unsigned long msgsize = 0;
@@ -279,9 +301,9 @@ redirect: /* Goto here if 30x received */
 
     if(use_proxy == 1)
     {
-        if(sock_fd_ka < 0)
+        if(!socket_good(&sock_fd_ka))
         {
-            if(conn_open(& sock_fd, proxy_address, proxy_port) != EXIT_SUCCESS) /* Open connection */
+            if(conn_open(&sock_fd, proxy_address, proxy_port) != EXIT_SUCCESS) /* Open connection */
             {
                 free(buffer);
                 return EXIT_FAILURE;
@@ -304,9 +326,9 @@ redirect: /* Goto here if 30x received */
     }
     else
     {
-        if(sock_fd_ka < 0)
+        if(!socket_good(&sock_fd_ka))
         {
-            if(conn_open(& sock_fd, servername_dl, serverport_dl) != EXIT_SUCCESS) /* Open connection */
+            if(conn_open(&sock_fd, servername_dl, serverport_dl) != EXIT_SUCCESS) /* Open connection */
             {
                 free(buffer);
                 return EXIT_FAILURE;
@@ -348,8 +370,8 @@ redirect: /* Goto here if 30x received */
     request_len = strlen(buffer);
     if(more_verbose)
     {
-        printf("\n");
         size_t i;
+        printf("\n");
         for(i = 0; i < request_len; i++)
             if(buffer[i] != '\r')
                 printf("%c", buffer[i]);
@@ -441,7 +463,7 @@ redirect: /* Goto here if 30x received */
             if(status == EXIT_FAILURE)
             {
                 fprintf(ERRFP, "Error with recv(): Can't parse response\n");
-                if(sock_fd_ka < 0)
+                if(!socket_good(&sock_fd_ka))
                     conn_close(&sock_fd);
                 free(buffer);
                 return status;
@@ -528,7 +550,7 @@ redirect: /* Goto here if 30x received */
                 if(strcmp(field_content, "keep-alive") == 0 && strcmp(servername, servername_dl) == 0)
                     sock_fd_ka = sock_fd; /* Server supports keep-alive */
                 else
-                    sock_fd_ka = -1;
+                    sock_fd_ka = SOCKET_BAD_VALUE;
             }
             else if(strcmp(field_name, "Content-Length") == 0)
             {
@@ -602,7 +624,7 @@ redirect: /* Goto here if 30x received */
     /* Something wrong */
     if(status != 200 && status != 203)
     {
-        if(sock_fd_ka < 0)
+        if(!socket_good(&sock_fd_ka))
             conn_close(&sock_fd);
         free(buffer);
         return status;
@@ -618,7 +640,7 @@ redirect: /* Goto here if 30x received */
     {
         if(more_verbose) printf("\n\n");
         fprintf(ERRFP, "Error with fopen() on %s\n", filename);
-        if(sock_fd_ka < 0)
+        if(!socket_good(&sock_fd_ka))
             conn_close(&sock_fd);
         free(buffer);
         return EXIT_FAILURE;
@@ -684,7 +706,7 @@ redirect: /* Goto here if 30x received */
         msgcurr += recv_count;
     }
 
-    if(sock_fd_ka < 0)
+    if(!socket_good(&sock_fd_ka))
         conn_close(&sock_fd); /* Close connection */
     fclose(fp);
     free(buffer);
@@ -870,6 +892,8 @@ int download(const char * filename)
 int download_check(const char * filename, const char * checksum_base, char * checksum_real,
                    int (* checksum_func)(const char *, char *), const char * checksum_desc)
 {
+    int status;
+
     if(use_fast && tree && exist(filename)) /* Using fast check */
     {
         const char * checksum_tree = avl_hash(tree, filename);
@@ -889,7 +913,7 @@ int download_check(const char * filename, const char * checksum_base, char * che
         }
     }
 
-    int status = checksum_func(filename, checksum_real);
+    status = checksum_func(filename, checksum_real);
     if(status == EXIT_SUCCESS) /* File exist */
     {
         if(verbose)

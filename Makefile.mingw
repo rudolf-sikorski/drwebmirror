@@ -25,7 +25,7 @@ all: $(SOURCES) $(EXECUTABLE)
 
 .PHONY: clean distclean
 
-$(EXECUTABLE): $(OBJECTS) 
+$(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $(OBJECTS) -lwsock32 $(LDFLAGS) -o $@
 
 .c.o:

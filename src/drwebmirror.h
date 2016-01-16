@@ -52,6 +52,15 @@
 /* Windows-specific file mode bits */
 #if defined(_WIN32)
 #include <sys/stat.h>
+#if !defined (S_IRUSR)
+#define S_IRUSR (_S_IREAD)
+#endif
+#if !defined (S_IWUSR)
+#define S_IWUSR (_S_IWRITE)
+#endif
+#if !defined (S_IRWXU)
+#define S_IRWXU (_S_IREAD | _S_IWRITE)
+#endif
 #undef   MODE_DIR
 #define  MODE_DIR       (S_IRWXU)
 #undef   MODE_FILE
@@ -65,8 +74,24 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include <unistd.h>
+#include <stdint.h>
 #include "avltree/avltree.h"
+
+#if !(defined(_WIN32) && defined (_MSC_VER))
+#include <unistd.h>
+#else
+#include <direct.h>
+#include <io.h>
+#include <windows.h>
+#define sleep(s) Sleep((s)*1000)
+#define chmod(name, mode)       (_chmod((name), (mode)))
+#define chdir(path)             (_chdir((path)))
+#define getcwd(buf, size)       (_getcwd((buf), (size)))
+#define mkdir(path)             (_mkdir(path))
+#define open(name, flag, mode)  (_open((name), (flag), (mode)))
+#define close(fd)               (_close((fd)))
+#define NO_POSIX_API
+#endif
 
 /* Flag of use verbose output */
 extern int8_t verbose;
@@ -74,7 +99,7 @@ extern int8_t verbose;
 extern int8_t more_verbose;
 
 /* System timezone */
-extern long tzshift;
+extern time_t tzshift;
 /* UserID from license key */
 extern char key_userid[33];
 /* MD5 sum of license key */

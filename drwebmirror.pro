@@ -34,9 +34,19 @@ HEADERS += \
     src/lzma/LzmaDec.h \
     src/lzma/Precomp.h
 
-QMAKE_CFLAGS_RELEASE -= -O2
-QMAKE_CFLAGS_RELEASE *= -O3
-QMAKE_CFLAGS_RELEASE *= -DNDEBUG
-QMAKE_CFLAGS_WARN_ON *= -Wall
-QMAKE_CFLAGS_WARN_ON *= -Wextra
-win32 : LIBS += -lwsock32
+*g++*|*clang* {
+    QMAKE_CFLAGS_RELEASE -= -O2
+    QMAKE_CFLAGS_RELEASE *= -O3
+    QMAKE_CFLAGS_RELEASE *= -DNDEBUG
+    QMAKE_CFLAGS_WARN_ON *= -Wall
+    QMAKE_CFLAGS_WARN_ON *= -Wextra
+    win32 : LIBS += -lwsock32
+}
+
+*msvc* {
+    QMAKE_CXXFLAGS_RELEASE -= -O2
+    QMAKE_CXXFLAGS_RELEASE *= -Ox
+    DEFINES += _CRT_SECURE_NO_WARNINGS
+    INCLUDEPATH += src/msinttypes
+    LIBS += wsock32.lib
+}

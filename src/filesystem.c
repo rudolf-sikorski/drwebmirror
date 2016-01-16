@@ -19,9 +19,16 @@
 
 #include "drwebmirror.h"
 #include <sys/stat.h>
+#include <fcntl.h>
+#if !defined (NO_POSIX_API)
 #include <utime.h>
 #include <dirent.h>
-#include <fcntl.h>
+#else
+#include <sys/utime.h>
+#ifndef S_ISDIR
+#define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
+#endif
+#endif
 
 /* Lock file descriptor */
 int lockfd;
@@ -123,6 +130,7 @@ int make_path_for(char * filename)
 /* Delete files by mask <mask> in directory <directory> */
 int delete_files(const char * directory, const char * mask)
 {
+#if !defined (NO_POSIX_API)
     DIR * dfd = opendir(directory);
     struct dirent * dp;
 
@@ -181,6 +189,9 @@ int delete_files(const char * directory, const char * mask)
 
     closedir(dfd);
     return EXIT_SUCCESS;
+#else
+    return EXIT_SUCCESS;
+#endif
 }
 
 /* Check <filename> exist */
@@ -273,13 +284,22 @@ FILE * fopen_temp(char * filename)
 /* Lock file */
 int do_lock(const char * directory)
 {
+    size_t dir_len = bsd_strlcpy(lockfile, directory, sizeof(lockfile));
+    char * lockfile_curr = lockfile + dir_len;
 #if !defined(__CYGWIN__) && !defined(_WIN32)
     struct flock fl;
     memset(& fl, 0, sizeof(struct flock));
     fl.l_whence = SEEK_SET;
     fl.l_type = F_WRLCK | F_RDLCK;
 #endif
-    snprintf(lockfile, sizeof(lockfile) - 1, "%s/%s", directory, LOCKFILENAME);
+    if(dir_len > sizeof(lockfile))
+    {
+        lockfile_curr -= strlen(LOCKFILENAME) + 2;
+        while((* lockfile_curr) != '/' && lockfile_curr != lockfile)
+            lockfile_curr--;
+    }
+    *(lockfile_curr++) = '/';
+    strcpy(lockfile_curr, LOCKFILENAME);
     lockfd = 0;
 
     /* Open */

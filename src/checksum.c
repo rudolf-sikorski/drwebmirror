@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -140,7 +140,7 @@ int sha256sum_lzma(const char * filename, char str[65])
 {
     FILE * file = fopen(filename, "rb");
     FILE * tmpf;
-    size_t i;
+    int i;
     unsigned char buffer[512];
     char name[STRBUFSIZE] = "\0";
     sha_state md;
@@ -166,7 +166,7 @@ int sha256sum_lzma(const char * filename, char str[65])
     sha_init(& md);
     do
     {
-        i = fread(buffer, 1, 512, tmpf);
+        i = (int)fread(buffer, 1, 512, tmpf);
         sha_process(& md, buffer, i);
     }
     while(i == 512);

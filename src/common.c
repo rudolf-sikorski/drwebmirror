@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2015, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -20,14 +20,14 @@
 #include "drwebmirror.h"
 
 /* System timezone */
-long tzshift;
+time_t tzshift;
 
 /* Get system timezone */
 void set_tzshift()
 {
     time_t currtime = time(NULL);
     struct tm * ptm;
-    long uthr, lthr;
+    time_t uthr, lthr;
     ptm = gmtime(& currtime); /* Time in GMT */
     uthr = mktime(ptm);
     ptm = localtime(& currtime); /* Time in local timezone */

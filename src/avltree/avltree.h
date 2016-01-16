@@ -2,13 +2,12 @@
  * File: avltree.h
  * Description: Simple AVL Tree
  * Author: Rudolf Sikorski <rudolf.sikorski@freenet.de>
- * Revision: Sun, 29 Nov 2015 12:05:00 +0000
+ * Revision: Sat, 16 Jan 2016 18:20:26 +0000
  * License: Public Domain
  */
 #ifndef AVLTREE_H
 #define AVLTREE_H
 
-#include <stdint.h>
 /* Type for subtree height */
 typedef unsigned char avl_u_t;
 /* Type for difference between two subtree height */

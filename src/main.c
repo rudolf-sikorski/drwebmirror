@@ -495,7 +495,7 @@ int main(int argc, char * argv[])
             fprintf(ERRFP, "HTTP username or password is too long.\n\n");
             return EXIT_FAILURE;
         }
-        snprintf(http_auth_text, sizeof(http_auth_text) - 1, "%s:%s", http_user, http_pass);
+        sprintf(http_auth_text, "%s:%s", http_user, http_pass);
         http_auth_text[sizeof(http_auth_text) - 1] = '\0';
         base64_encode(http_auth_text, http_auth);
         use_http_auth = 1;
@@ -615,7 +615,7 @@ int main(int argc, char * argv[])
                 fprintf(ERRFP, "Proxy username or password is too long.\n\n");
                 return EXIT_FAILURE;
             }
-            snprintf(proxy_auth_text, sizeof(proxy_auth_text) - 1, "%s:%s", proxy_user, proxy_pass);
+            sprintf(proxy_auth_text, "%s:%s", proxy_user, proxy_pass);
             proxy_auth_text[sizeof(proxy_auth_text) - 1] = '\0';
             base64_encode(proxy_auth_text, proxy_auth);
             use_proxy_auth = 1;

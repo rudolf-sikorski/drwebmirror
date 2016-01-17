@@ -1,3 +1,13 @@
+[v1.11] - 17 Jan 2016
+* Updated default key values
+* Added support of DrWeb for BlackBerry
+* Ported to MSVC 2003+
+* Added Readme and Contributors files
+* Updated LZMA SDK to 15.14
+* Added support of basic HTTP authentication
+* Fixed a lot of bugs in cl arguments parser
+* Fixed bugs in network module for Win32
+
 [v1.10] - 04 Dec 2015
 * Ported to Windows (Native, MinGW)
 * Added basic support of HTTP proxy

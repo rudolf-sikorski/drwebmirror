@@ -50,7 +50,7 @@ int8_t more_verbose;
 /* Show help message */
 void show_help()
 {
-    printf("DrWebMirror " PROG_VERSION ", tool for create mirror of DrWeb update server.\n"
+    printf("DrWebMirror " PROG_VERSION ", tool for creating a mirror of DrWeb update server.\n"
            "Homepage: https://fami.codefreak.ru/osp/drwebmirror\n\n"
            "Usage: drwebmirror <options>\n"
            "\n"

@@ -226,7 +226,7 @@ int delete_files(const char * directory, const char * mask)
                     MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
                     (LPSTR) &lpMsgBuf,
                     0, NULL );
-        fprintf(ERRFP, "Error: Can't delete file %s/%s (%s)\n", directory, ffd.cFileName, lpMsgBuf);
+        fprintf(ERRFP, "Error: Can't delete file %s/%s (%s)\n", directory, mask, lpMsgBuf);
         LocalFree(lpMsgBuf);
     }
     FindClose(hFind);

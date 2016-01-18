@@ -1,12 +1,15 @@
-[v1.11] - 17 Jan 2016
+[v1.11] - 18 Jan 2016
 * Updated default key values
 * Added support of DrWeb for BlackBerry
+* Added support of DrWeb for Novell NetWare
+* Added support of DrWeb 9.1/9.2 for Android
 * Ported to MSVC 2003+
 * Added Readme and Contributors files
 * Updated LZMA SDK to 15.14
 * Added support of basic HTTP authentication
 * Fixed a lot of bugs in cl arguments parser
 * Fixed bugs in network module for Win32
+* Added update server autodetection
 
 [v1.10] - 04 Dec 2015
 * Ported to Windows (Native, MinGW)

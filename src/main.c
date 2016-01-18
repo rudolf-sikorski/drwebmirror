@@ -102,6 +102,9 @@ void show_help()
            "| DrWeb 4.44 for Windows + Antispam    | 444/vr/windows               |  4  |\n"
            "| DrWeb 4.44 for Windows Server        | 444/servers/windows          |  4  |\n"
            "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb 5.00 for Novell NetWare        | netware/500                  |  4  |\n"
+           "| DrWeb 5.01 for Novell NetWare        | netware/700                  |  4  |\n"
+           "|--------------------------------------+------------------------------+-----|\n"
            "| DrWeb 5.0 for Windows                | 500/windows                  | 4/5 |\n"
            "|                                      | 500/winold/windows           | 4/5 |\n"
            "| DrWeb 5.0 Security Space for Windows | 500/sspace/windows           | 4/5 |\n"
@@ -141,7 +144,7 @@ void show_help()
            "| DrWeb 11.0 Beta for Windows          | xmlzone/beta/1100/windows    |  7  |\n"
            "|--------------------------------------+------------------------------+-----|\n"
            "| DrWeb 6.0-8.0 for Android            | android/6.1/drwebce.lst      |  A  |\n"
-           "| DrWeb 9.0 for Android                | android/9/version.lst        |  A  |\n"
+           "| DrWeb 9.0-9.2 for Android            | android/9/version.lst        |  A  |\n"
            "| DrWeb 10.0 for Android/BlackBerry    | android/10/version.lst       |  A  |\n"
            "| DrWeb 10.1 for Android/BlackBerry    | android/10.1/version.lst     |  A  |\n"
            "|--------------------------------------+------------------------------+-----|\n");
@@ -165,16 +168,21 @@ void detect_useragent(const char * dir)
             bsd_strlcpy(useragent, "Dr.Web Updater Symbian/1.0", sizeof(useragent));
         /* DrWeb Light 9.00.2(0), Android 2.3.7 */
         else if(strcmp(dir, "android/9/version.lst") == 0)
-            bsd_strlcpy(useragent, "Dr.Web anti-virus Light Version: 9.00.2.7039 Device model: LG-P500 Firmware version: 2.3.7", sizeof(useragent));
+            bsd_strlcpy(useragent, "Dr.Web anti-virus Light Version: 9.00.2.7039 "
+                                   "Device model: LG-P500 Firmware version: 2.3.7", sizeof(useragent));
         /* DrWeb Security Space 10.0.3(1), Android 4.4.2 */
         else if(strcmp(dir, "android/10/version.lst") == 0)
-            bsd_strlcpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 10.0.3.14009 Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent));
+            bsd_strlcpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) "
+                                   "LicenseState:LICENSE KEY Version: 10.0.3.14009 "
+                                   "Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent));
         /* DrWeb Security Space 10.1.1(1), Android 4.4.2 */
         else if(strcmp(dir, "android/10.1/version.lst") == 0)
-            bsd_strlcpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) LicenseState:LICENSE KEY Version: 10.1.1.14011 Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent));
+            bsd_strlcpy(useragent, "Dr.Web anti-virus License:DRWEB KEY (Support ES) "
+                                   "LicenseState:LICENSE KEY Version: 10.1.1.14011 "
+                                   "Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent));
     }
     if(useragent[0] == '\0')
-        bsd_strlcpy(useragent, DEF_USERAGENT, sizeof(useragent));
+        bsd_strlcpy(useragent, "DrWebUpdate-6.00.12.03291 (windows: 6.01.7601)", sizeof(useragent));
 }
 
 /* Autodetect update protocol */
@@ -183,13 +191,35 @@ char detect_proto(const char * dir)
     if(strncmp(dir, "444/", strlen("444/")) == 0 ||
        strncmp(dir, "433/", strlen("433/")) == 0 ||
        strncmp(dir, "windows", strlen("windows")) == 0 ||
-       strncmp(dir, "servers/433/windows", strlen("servers/433/windows")) == 0)
+       strncmp(dir, "servers/433/windows", strlen("servers/433/windows")) == 0 ||
+       strncmp(dir, "netware/", strlen("netware/")) == 0)
         return '4';
     if(strncmp(dir, "xmlzone/", strlen("xmlzone/")) == 0)
         return '7';
     if(strncmp(dir, "android/", strlen("android/")) == 0)
         return 'A';
     return '5';
+}
+
+/* Autodetect update server */
+void detect_server(const char * dir)
+{
+    if(strncmp(dir, "444/", strlen("444/")) == 0 ||
+       strncmp(dir, "433/", strlen("433/")) == 0 ||
+       strncmp(dir, "500/", strlen("500/")) == 0 ||
+       strncmp(dir, "x64/600/", strlen("x64/600/")) == 0 ||
+       strncmp(dir, "x86/600/", strlen("x86/600/")) == 0 ||
+       strncmp(dir, "windows", strlen("windows")) == 0 ||
+       strncmp(dir, "servers/433/windows", strlen("servers/433/windows")) == 0 ||
+       strncmp(dir, "netware/", strlen("netware/")) == 0 ||
+       strncmp(dir, "android/", strlen("android/")) == 0 ||
+       strncmp(dir, "livecd/", strlen("livecd/")) == 0 ||
+       strncmp(dir, "unix/500", strlen("unix/500")) == 0 ||
+       strncmp(dir, "unix/700", strlen("unix/700")) == 0 ||
+       strncmp(dir, "unix/900", strlen("unix/900")) == 0)
+        bsd_strlcpy(servername, "update.drweb.com", sizeof(servername));
+    else
+        bsd_strlcpy(servername, "update.geo.drweb.com", sizeof(servername));
 }
 
 /* Main function */
@@ -473,7 +503,7 @@ int main(int argc, char * argv[])
     }
 
     if(!o_s)
-        bsd_strlcpy(servername, DEF_SERVER, sizeof(servername));
+        detect_server(remotedir);
     else
     {
         char * delim = strchr(servername, ':');

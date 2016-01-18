@@ -361,11 +361,14 @@ redirect: /* Goto here if 30x received */
         sprintf(buffer + strlen(buffer),
                 "X-DrWeb-SysHash: %s\r\n",
                 syshash);
+    if(useragent[0] != '\0')
+        sprintf(buffer + strlen(buffer),
+                "User-Agent: %s\r\n",
+                useragent);
     sprintf(buffer + strlen(buffer),
-            "User-Agent: %s\r\n"
             "Connection: %s\r\n"
             "Cache-Control: no-cache\r\n\r\n",
-            useragent, conn_ka);
+            conn_ka);
 
     request_len = strlen(buffer);
     if(more_verbose)

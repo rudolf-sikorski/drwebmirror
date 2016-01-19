@@ -12,6 +12,7 @@
 * Fixed a lot of bugs in cl arguments parser
 * Fixed bugs in network module for Win32
 * Added update server autodetection
+* Changed User-Agent: empty by default
 
 [v1.10] - 04 Dec 2015
 * Ported to Windows (Native, MinGW)

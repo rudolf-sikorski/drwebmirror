@@ -183,8 +183,14 @@ void detect_useragent(const char * dir)
                                    "LicenseState:LICENSE KEY Version: 10.1.1.14011 "
                                    "Device model: SM-N9005 Firmware version: 4.4.2", sizeof(useragent));
     }
+    /*
     if(useragent[0] == '\0')
         bsd_strlcpy(useragent, "DrWebUpdate-6.00.12.03291 (windows: 6.01.7601)", sizeof(useragent));
+    */
+    /*
+       If User Agent is unknown, we will emulate a bad proxy server (for example, Squid with
+       "header_access User-Agent deny all"). Maybe this idea is better than mimic a Windows.
+    */
 }
 
 /* Autodetect update protocol */
@@ -735,7 +741,8 @@ int main(int argc, char * argv[])
         }
         if(use_syshash)
             printf("Hash:  %s\n", syshash);
-        printf("Agent: %s\n", useragent);
+        if(useragent[0] != '\0')
+            printf("Agent: %s\n", useragent);
     }
     if(more_verbose == 1 && use_http_auth == 1)
     {

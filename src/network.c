@@ -656,7 +656,7 @@ redirect: /* Goto here if 30x received */
 
     if(bufpos != bufend) /* Write content */
     {
-        msgcurr = bufend - bufpos;
+        msgcurr = (unsigned long)(bufend - bufpos);
         if(msgcurr > msgsize)
             msgcurr = msgsize;
         if(fwrite(bufpos, sizeof(char), msgcurr, fp) != (size_t)msgcurr)

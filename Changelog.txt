@@ -1,8 +1,10 @@
-[v1.11] - 18 Jan 2016
+[v1.11] - 19 Jan 2016
 * Updated default key values
 * Added support of DrWeb for BlackBerry
 * Added support of DrWeb for Novell NetWare
 * Added support of DrWeb 9.1/9.2 for Android
+* Added support of DrWeb for Symbian
+* Added support of DrWeb for Windows Mobile
 * Ported to MSVC 2003+
 * Added Readme and Contributors files
 * Updated LZMA SDK to 15.14

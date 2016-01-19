@@ -21,4 +21,6 @@ obj/*
 /servers
 /windows
 /livecd
+/wince
+/netware
 

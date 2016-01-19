@@ -30,7 +30,7 @@ avl_node * tree;
 int8_t use_fast;
 
 /* Get UserID and MD5 sum from keyfile */
-int parse_keyfile(char * filename)
+int parse_keyfile(const char * filename)
 {
     char str[255];
     FILE * fp = fopen(filename, "r");

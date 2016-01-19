@@ -143,6 +143,8 @@ void show_help()
            "| DrWeb 11.0 for Windows               | xmlzone/release/1100/windows |  7  |\n"
            "| DrWeb 11.0 Beta for Windows          | xmlzone/beta/1100/windows    |  7  |\n"
            "|--------------------------------------+------------------------------+-----|\n"
+           "| DrWeb for Symbian                    | 500/symbian/drwebce.lst      |  A  |\n"
+           "| DrWeb for Windows Mobile             | wince/600/drwebce.lst        |  A  |\n"
            "| DrWeb 6.0-8.0 for Android            | android/6.1/drwebce.lst      |  A  |\n"
            "| DrWeb 9.0-9.2 for Android            | android/9/version.lst        |  A  |\n"
            "| DrWeb 10.0 for Android/BlackBerry    | android/10/version.lst       |  A  |\n"
@@ -188,38 +190,65 @@ void detect_useragent(const char * dir)
 /* Autodetect update protocol */
 char detect_proto(const char * dir)
 {
-    if(strncmp(dir, "444/", strlen("444/")) == 0 ||
-       strncmp(dir, "433/", strlen("433/")) == 0 ||
-       strncmp(dir, "windows", strlen("windows")) == 0 ||
-       strncmp(dir, "servers/433/windows", strlen("servers/433/windows")) == 0 ||
-       strncmp(dir, "netware/", strlen("netware/")) == 0)
-        return '4';
-    if(strncmp(dir, "xmlzone/", strlen("xmlzone/")) == 0)
-        return '7';
-    if(strncmp(dir, "android/", strlen("android/")) == 0)
-        return 'A';
+    const char * proto_4[] =
+    {
+        "443/",
+        "433/",
+        "windows",
+        "servers/433/windows",
+        "netware/"
+    };
+    const char * proto_7[] =
+    {
+        "xmlzone/"
+    };
+    const char * proto_A[] =
+    {
+        "android/",
+        "wince/",
+        "500/symbian/"
+    };
+    size_t i;
+    for(i = 0; i < sizeof(proto_4) / sizeof(char *); i++)
+        if(strncmp(dir, proto_4[i], strlen(proto_4[i])) == 0)
+            return '4';
+    for(i = 0; i < sizeof(proto_7) / sizeof(char *); i++)
+        if(strncmp(dir, proto_7[i], strlen(proto_7[i])) == 0)
+            return '7';
+    for(i = 0; i < sizeof(proto_A) / sizeof(char *); i++)
+        if(strncmp(dir, proto_A[i], strlen(proto_A[i])) == 0)
+            return 'A';
     return '5';
 }
 
 /* Autodetect update server */
 void detect_server(const char * dir)
 {
-    if(strncmp(dir, "444/", strlen("444/")) == 0 ||
-       strncmp(dir, "433/", strlen("433/")) == 0 ||
-       strncmp(dir, "500/", strlen("500/")) == 0 ||
-       strncmp(dir, "x64/600/", strlen("x64/600/")) == 0 ||
-       strncmp(dir, "x86/600/", strlen("x86/600/")) == 0 ||
-       strncmp(dir, "windows", strlen("windows")) == 0 ||
-       strncmp(dir, "servers/433/windows", strlen("servers/433/windows")) == 0 ||
-       strncmp(dir, "netware/", strlen("netware/")) == 0 ||
-       strncmp(dir, "android/", strlen("android/")) == 0 ||
-       strncmp(dir, "livecd/", strlen("livecd/")) == 0 ||
-       strncmp(dir, "unix/500", strlen("unix/500")) == 0 ||
-       strncmp(dir, "unix/700", strlen("unix/700")) == 0 ||
-       strncmp(dir, "unix/900", strlen("unix/900")) == 0)
-        bsd_strlcpy(servername, "update.drweb.com", sizeof(servername));
-    else
-        bsd_strlcpy(servername, "update.geo.drweb.com", sizeof(servername));
+    const char * not_geo[] =
+    {
+        "444/",
+        "433/",
+        "500/",
+        "x64/600",
+        "x86/600",
+        "windows",
+        "servers/433/windows",
+        "netware/",
+        "wince/",
+        "android/",
+        "livecd/",
+        "unix/500",
+        "unix/700",
+        "unix/900"
+    };
+    size_t i;
+    for(i = 0; i < sizeof(not_geo) / sizeof(char *); i++)
+        if(strncmp(dir, not_geo[i], strlen(not_geo[i])) == 0)
+        {
+            bsd_strlcpy(servername, "update.drweb.com", sizeof(servername));
+            return;
+        }
+    bsd_strlcpy(servername, "update.geo.drweb.com", sizeof(servername));
 }
 
 /* Main function */

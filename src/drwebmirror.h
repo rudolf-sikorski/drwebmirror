@@ -149,7 +149,7 @@ size_t bsd_strlcpy(char * dst, const char * src, size_t dsize);
 
 /* Drwebmirror */
 /* Get UserID and MD5 sum from keyfile */
-int parse_keyfile(char * filename);
+int parse_keyfile(const char * filename);
 /* Update using version 4 of update protocol (flat file, crc32) */
 int update4();
 /* Update using version 5 of update protocol (flat file, sha256) */

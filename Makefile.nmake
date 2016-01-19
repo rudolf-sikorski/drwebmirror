@@ -1,5 +1,5 @@
-CFLAGS = /Ox /DNDEBUG /D_CRT_SECURE_NO_WARNINGS /MT /GS- /nologo /W3 /Isrc\msinttypes
-LDFLAGS = wsock32.lib /NOLOGO /SUBSYSTEM:CONSOLE /RELEASE /SAFESEH:NO /MANIFEST:NO
+CFLAGS = /Ox /DNDEBUG /D_CRT_SECURE_NO_WARNINGS /MT /GS- /nologo /W3
+LDFLAGS = /NOLOGO /SUBSYSTEM:CONSOLE /RELEASE /SAFESEH:NO /MANIFEST:NO
 EXECUTABLE = drwebmirror.exe
 OBJECTS = \
 	src\\main.obj \
@@ -22,10 +22,10 @@ OBJECTS = \
 all: $(OBJECTS) $(EXECUTABLE)
 
 .c.obj:
-	cl $(CFLAGS) /c $< /Fo$@
+	cl $(CFLAGS) /Isrc\msinttypes /c $< /Fo$@
 
 $(EXECUTABLE): $(OBJECTS)
-	link $(OBJECTS) $(LDFLAGS) /out:$@
+	link $(OBJECTS) wsock32.lib $(LDFLAGS) /out:$@
 
 clean:
 	del /q /f $(OBJECTS) 2>nul

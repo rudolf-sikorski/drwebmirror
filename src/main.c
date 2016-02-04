@@ -164,7 +164,7 @@ void detect_useragent(const char * dir)
 {
     useragent[0] = '\0';
     /* TODO: More User Agents ? */
-    if(strncmp(dir, "android/", strlen("android/")) == 0)
+    if(strncmp(dir, "android/", 8) == 0)
     {
         /* DrWeb Light 7.00.0, Android 2.3.7 */
         if(strcmp(dir, "android/6.1/drwebce.lst") == 0)
@@ -574,22 +574,26 @@ int main(int argc, char * argv[])
         if(o_u && o_m)
         {
             int8_t flag;
-            size_t i;
-            for(i = 0, flag = 0; i < strlen(inp_user); i++)
+            size_t i, len = strlen(inp_user);
+            for(i = 0, flag = 0; i < len; i++)
                 if(inp_user[i] < '0' || inp_user[i] > '9')
                     flag++;
-            if(flag || strlen(inp_user) > 32)
+            if(flag || len > 32)
             {
                 fprintf(ERRFP, "Error: Incorrect UserID from key file.\n\n");
                 show_hint();
                 return EXIT_FAILURE;
             }
 
-            to_lowercase(inp_md5);
-            for(i = 0, flag = 0; i < strlen(inp_md5); i++)
+            len = strlen(inp_md5);
+            for(i = 0, flag = 0; i < len; i++)
+            {
+                if(inp_md5[i] >= 'A' && inp_md5[i] <= 'Z')
+                    inp_md5[i] -= 'A' - 'a';
                 if(!((inp_md5[i] >= '0' && inp_md5[i] <= '9') || (inp_md5[i] >= 'a' && inp_md5[i] <= 'f')))
                     flag++;
-            if(flag || strlen(inp_md5) != 32)
+            }
+            if(flag || len != 32)
             {
                 fprintf(ERRFP, "Error: Incorrect MD5 sum of key file.\n\n");
                 show_hint();
@@ -619,15 +623,15 @@ int main(int argc, char * argv[])
     if(o_H)
     {
         int8_t flag = 0;
-        size_t i;
-        for(i = 0; i < strlen(syshash); i++)
+        size_t i, len = strlen(syshash);
+        for(i = 0; i < len; i++)
         {
             if(syshash[i] >= 'a' && syshash[i] <= 'f')
                 syshash[i] += 'A' - 'a';
             if(!((syshash[i] >= '0' && syshash[i] <= '9') || (syshash[i] >= 'A' && syshash[i] <= 'F')))
                 flag++;
         }
-        if(flag || strlen(syshash) != 32)
+        if(flag || len != 32)
         {
             fprintf(ERRFP, "Incorrecr X-DrWeb-SysHash header.\n\n");
             show_hint();

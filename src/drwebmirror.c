@@ -749,7 +749,7 @@ void cacheA(const char * directory)
         }
         else
         {
-            if(strncmp(buf, "[Files]", strlen("[Files]")) == 0)
+            if(strncmp(buf, "[Files]", 7) == 0)
                 flag_files = 1;
         }
     }
@@ -873,7 +873,7 @@ repeatA: /* Goto here if checksum mismatch */
         }
         else
         {
-            if(strncmp(buf, "[Files]", strlen("[Files]")) == 0)
+            if(strncmp(buf, "[Files]", 7) == 0)
                 flag_files = 1;
         }
     }

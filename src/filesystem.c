@@ -336,7 +336,7 @@ int do_lock(const char * directory)
     {
         lockfile_curr -= strlen(LOCKFILENAME) + 2;
 #if defined(_WIN32)
-        while(((* lockfile_curr) != '/' || (* lockfile_curr) != '\\') &&
+        while(((* lockfile_curr) != '/' && (* lockfile_curr) != '\\') &&
 #else
         while((* lockfile_curr) != '/' &&
 #endif

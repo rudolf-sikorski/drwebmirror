@@ -729,7 +729,11 @@ int main(int argc, char * argv[])
     printf("---------- Update bases (v%c) ----------\n", proto);
     printf("Date:  %s\n", time3);
     printf("From:  http://%s:%u/%s\n", servername, (unsigned)serverport, remotedir);
-    getcwd(cwd, sizeof(cwd));
+    if(getcwd(cwd, sizeof(cwd)) == NULL)
+    {
+        fprintf(ERRFP, "Error: Can't get current working directory.\n\n");
+        return EXIT_FAILURE;
+    }
     printf("To:    %s\n", cwd);
     if(use_proxy)
         printf("Proxy: %s:%u\n", proxy_address, (unsigned)proxy_port);

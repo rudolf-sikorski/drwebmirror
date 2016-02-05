@@ -18,9 +18,9 @@ Compilation:
       $ sudo make install
       or
       $ sudo make install PREFIX=/path/to/install
-    * Windows (MinGW)
+    * Windows (MinGW):
       > mingw32-make -f Makefile.mingw
-    * Windows (Visual Studio 2003+)
+    * Windows (Visual Studio 2003+):
       > nmake -f Makefile.nmake
 
 Submitting Bugs:
@@ -34,8 +34,7 @@ Submitting Bugs:
 *** Annex 1. Tricks for Apache ***
 
 # DrWebUpW clients should receive files from the mirrors/drweb/
-RewriteCond %{HTTP_USER_AGENT} ^DrWeb(.*) [NC,OR]
-RewriteCond %{HTTP_USER_AGENT} ^Dr.Web(.*) [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} ^Dr\.?Web(.*) [NC,OR]
 RewriteCond %{HTTP:X-DrWeb-KeyNumber} ^[0-9]+ [OR]
 RewriteCond %{HTTP:X-DrWeb-Validate} ^[0-9a-f]+ [NC]
 RewriteRule ^([^(mirrors)](.*))$ mirrors/drweb/$1 [L]
@@ -44,9 +43,7 @@ RewriteRule ^([^(mirrors)](.*))$ mirrors/drweb/$1 [L]
 *** Annex 2. Tricks for Nginx ***
 
 # DrWebUpW clients should receive files from the /mirrors/drweb/
-if ($http_user_agent ~* "^DrWeb(.*)")
-{ rewrite ^/([^(mirrors)](.*))$ /mirrors/drweb/$1 break; }
-if ($http_user_agent ~* "^Dr.Web(.*)")
+if ($http_user_agent ~* "^Dr\.?Web(.*)")
 { rewrite ^/([^(mirrors)](.*))$ /mirrors/drweb/$1 break; }
 if ($http_x_drweb_keynumber)
 { rewrite ^/([^(mirrors)](.*))$ /mirrors/drweb/$1 break; }

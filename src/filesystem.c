@@ -277,8 +277,8 @@ FILE * fopen_temp(char * filename)
     FILE * tmpf = tmpfile();
     if(tmpf == NULL && filename != NULL) /* In some strange cases, tmpfile() does not work */
     {
-        tmpnam(filename);
-        tmpf = fopen(filename, "wb+");
+        if(tmpnam(filename) != NULL)
+            tmpf = fopen(filename, "wb+");
 
 #if defined(__CYGWIN__) || defined(_WIN32)
         if(tmpf == NULL) /* In some strange cases with cygwin, tmpnam() return broken path */

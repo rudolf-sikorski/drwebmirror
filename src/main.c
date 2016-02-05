@@ -28,19 +28,20 @@
 #define OPT_SYSHASH      0x04
 #define OPT_AGENT        0x05
 #define OPT_SERVER       0x06
-#define OPT_HTTP_USER    0x07
-#define OPT_HTTP_PASS    0x08
-#define OPT_PORT         0x09
-#define OPT_PROTO        0x0A
-#define OPT_REMOTE       0x0B
-#define OPT_LOCAL        0x0C
-#define OPT_PROXY        0x0D
-#define OPT_PROXY_USER   0x0E
-#define OPT_PROXY_PASS   0x0F
-#define OPT_FAST         0x10
-#define OPT_VERBOSE      0x11
-#define OPT_MORE_VERBOSE 0x12
-#define OPT_HELP         0x13
+#define OPT_SERVER_FB    0x07
+#define OPT_HTTP_USER    0x08
+#define OPT_HTTP_PASS    0x09
+#define OPT_PORT         0x0A
+#define OPT_PROTO        0x0B
+#define OPT_REMOTE       0x0C
+#define OPT_LOCAL        0x0D
+#define OPT_PROXY        0x0E
+#define OPT_PROXY_USER   0x0F
+#define OPT_PROXY_PASS   0x10
+#define OPT_FAST         0x11
+#define OPT_VERBOSE      0x12
+#define OPT_MORE_VERBOSE 0x13
+#define OPT_HELP         0x14
 
 /* Flag of use verbose output */
 int8_t verbose;
@@ -55,24 +56,25 @@ void show_help()
            "Usage: drwebmirror <options>\n"
            "\n"
            "Options:\n"
-           "  -k,  --keyfile=FILE           set key file\n"
-           "  -u,  --user=NUMBER            set UserID number from key file\n"
-           "  -m,  --md5=STRING             set MD5 sum of key file\n"
-           "  -H,  --syshash=STRING         set X-DrWeb-SysHash header\n"
-           "  -a,  --agent=STRING           set custom User Agent\n"
-           "  -s,  --server=ADDRESS[:PORT]  set update server address and port\n"
-           "       --http-user=USER         set username for HTTP connection\n"
-           "       --http-password=PASS     set password for HTTP connection\n"
-           "  -p,  --proto=PROTO            set update protocol (4, 5, 7 or A)\n"
-           "  -r,  --remote=PATH            set remote directory or file\n"
-           "  -l,  --local=DIR              set local directory\n"
-           "       --proxy=ADDRESS[:PORT]   set HTTP proxy address and port\n"
-           "       --proxy-user=USER        set username for HTTP proxy\n"
-           "       --proxy-password=PASS    set password for HTTP proxy\n"
-           "  -f,  --fast                   use fast checksums checking (dangerous)\n"
-           "  -v,  --verbose                show verbose output\n"
-           "  -V,  --verbose-full           show even more verbose output\n"
-           "  -h,  --help                   show this help\n"
+           "  -k,  --keyfile=FILE              set key file\n"
+           "  -u,  --user=NUMBER               set UserID number from key file\n"
+           "  -m,  --md5=STRING                set MD5 sum of key file\n"
+           "  -H,  --syshash=STRING            set X-DrWeb-SysHash header\n"
+           "  -a,  --agent=STRING              set custom User Agent\n"
+           "  -s,  --server=ADDRESS[:PORT]     set update server address and port\n"
+           "  -S,  --server-fb=ADDRESS[:PORT]  set fallback update server address and port\n"
+           "       --http-user=USER            set username for HTTP connection\n"
+           "       --http-password=PASS        set password for HTTP connection\n"
+           "  -p,  --proto=PROTO               set update protocol (4, 5, 7 or A)\n"
+           "  -r,  --remote=PATH               set remote directory or file\n"
+           "  -l,  --local=DIR                 set local directory\n"
+           "       --proxy=ADDRESS[:PORT]      set HTTP proxy address and port\n"
+           "       --proxy-user=USER           set username for HTTP proxy\n"
+           "       --proxy-password=PASS       set password for HTTP proxy\n"
+           "  -f,  --fast                      use fast checksums checking (dangerous)\n"
+           "  -v,  --verbose                   show verbose output\n"
+           "  -V,  --verbose-full              show even more verbose output\n"
+           "  -h,  --help                      show this help\n"
            "\n"
            "Example:\n"
            "\n"
@@ -264,7 +266,7 @@ int main(int argc, char * argv[])
     int opt = 0, i;
     int8_t o_k = 0, o_a = 0, o_s = 0, o_p = 0, o_r = 0, o_l = 0, o_v = 0, o_h = 0;
     int8_t o_u = 0, o_m = 0, o_H = 0, o_P = 0, o_V = 0, o_f = 0, o_pr = 0, o_pru = 0, o_prp = 0;
-    int8_t o_htu = 0, o_htp = 0;
+    int8_t o_htu = 0, o_htp = 0, o_sfb = 0;
     char * optval = NULL;
     char proto = '\0';
     char * workdir = NULL;
@@ -280,6 +282,7 @@ int main(int argc, char * argv[])
     int status = EXIT_FAILURE;
     char * proxy_user = NULL, * proxy_pass = NULL;
     char * http_user = NULL, * http_pass = NULL;
+    char * servername_fb = NULL;
 
 #if !defined(_WIN32)
     memset(& sigact, 0, sizeof(struct sigaction));
@@ -306,6 +309,8 @@ int main(int argc, char * argv[])
                     opt = OPT_AGENT;
                 else if(strstr(argv[i] + 2, "server=") == argv[i] + 2)
                     opt = OPT_SERVER;
+                else if(strstr(argv[i] + 2, "server-fb=") == argv[i] + 2)
+                    opt = OPT_SERVER_FB;
                 else if(strstr(argv[i] + 2, "http-user=") == argv[i] + 2)
                     opt = OPT_HTTP_USER;
                 else if(strstr(argv[i] + 2, "http-password=") == argv[i] + 2)
@@ -342,7 +347,7 @@ int main(int argc, char * argv[])
                 if(opt == OPT_KEYFILE || opt == OPT_USER || opt == OPT_MD5 || opt == OPT_SYSHASH ||
                    opt == OPT_AGENT || opt == OPT_SERVER || opt == OPT_PORT || opt == OPT_PROTO ||
                    opt == OPT_REMOTE || opt == OPT_LOCAL || opt == OPT_PROXY || opt == OPT_PROXY_USER ||
-                   opt == OPT_PROXY_PASS || opt == OPT_HTTP_USER || opt == OPT_HTTP_PASS)
+                   opt == OPT_PROXY_PASS || opt == OPT_HTTP_USER || opt == OPT_HTTP_PASS || opt == OPT_SERVER_FB)
                 {
                     optval = strchr(argv[i], '=');
                     if(optval)
@@ -375,6 +380,8 @@ int main(int argc, char * argv[])
                     opt = OPT_AGENT;
                 else if(argv[i][1] == 's')
                     opt = OPT_SERVER;
+                else if(argv[i][1] == 'S')
+                    opt = OPT_SERVER_FB;
                 else if(argv[i][1] == 'P') /* Deprecated */
                     opt = OPT_PORT;
                 else if(argv[i][1] == 'p')
@@ -400,7 +407,7 @@ int main(int argc, char * argv[])
 
                 if(opt == OPT_KEYFILE || opt == OPT_USER || opt == OPT_MD5 || opt == OPT_SYSHASH ||
                    opt == OPT_AGENT || opt == OPT_SERVER || opt == OPT_PORT || opt == OPT_PROTO ||
-                   opt == OPT_REMOTE || opt == OPT_LOCAL)
+                   opt == OPT_REMOTE || opt == OPT_LOCAL || opt == OPT_SERVER_FB)
                 {
                     i++;
                     if(i < argc)
@@ -446,6 +453,10 @@ int main(int argc, char * argv[])
         case OPT_SERVER:
             o_s++;
             bsd_strlcpy(servername, optval, sizeof(servername));
+            break;
+        case OPT_SERVER_FB:
+            o_sfb++;
+            servername_fb = optval;
             break;
         case OPT_HTTP_USER:
             o_htu++;
@@ -728,6 +739,8 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
+update_begin:
+
     conn_startup();
 
     printf("---------- Update bases (v%c) ----------\n", proto);
@@ -786,12 +799,37 @@ int main(int argc, char * argv[])
     conn_cleanup();
 
     if(tree) avl_dealloc(tree);
+    tree = NULL;
+
     if(status != EXIT_SUCCESS)
     {
         printf("FAILED.\n");
         do_unlock();
+        if(o_sfb != 0)
+        {
+            char * delim = strchr(servername_fb, ':');
+            serverport = 80;
+            if(delim)
+            {
+                * delim = '\0';
+                serverport = atoi(++delim);
+                if(serverport == 0)
+                {
+                    fprintf(ERRFP, "Incorrecr fallback update server port.\n\n");
+                    show_hint();
+                    return EXIT_FAILURE;
+                }
+            }
+            bsd_strlcpy(servername, servername_fb, sizeof(servername));
+            o_sfb = 0;
+            fprintf(ERRFP, "Warning: Trying with fallback server...\n");
+            use_fast = 0;
+            fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
+            goto update_begin;
+        }
         return status;
     }
+
     time_exiec = difftime(time(NULL), time1);
     printf("SUCCESS, time = ");
     if(time_exiec > 3600)

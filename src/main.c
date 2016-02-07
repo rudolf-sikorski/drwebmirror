@@ -201,7 +201,7 @@ char detect_proto(const char * dir)
 {
     const char * proto_4[] =
     {
-        "443/",
+        "444/",
         "433/",
         "windows",
         "servers/433/windows",

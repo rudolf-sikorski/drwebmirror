@@ -392,7 +392,7 @@ repeat5: /* Goto here if checksum mismatch */
             char filename[STRBUFSIZE];
             char sha_base[65], sha_real[65];
             off_t filesize = -1;
-            unsigned long filesize_ul;
+            unsigned long filesize_ul = 0;
             char * beg = buf + 1, * tmp;
             tmp = strchr(beg, '>'); /* if some as "=<w95>spider.vxd, ..." */
             if(tmp) beg = tmp + 1;
@@ -595,7 +595,7 @@ repeat7: /* Goto here if hashsum mismatch */
             char filename[STRBUFSIZE];
             int8_t is_xml = 0;
             off_t filesize = -1;
-            unsigned long filesize_ul;
+            unsigned long filesize_ul = 0;
             char * tmpchr;
 
             if(strstr(buf, "<xml") != NULL) is_xml = 1;
@@ -665,7 +665,7 @@ repeat7: /* Goto here if hashsum mismatch */
                         char xfilename[STRBUFSIZE];
                         int status;
                         off_t xfilesize = -1;
-                        unsigned long xfilesize_ul;
+                        unsigned long xfilesize_ul = 0;
 
                         bsd_strlcpy(base_hash, strstr(buf, "hash=\"") + 6, sizeof(base_hash));
                         sprintf(xfilename, "%s/%s", directory, strstr(buf, "name=\"") + 6);
@@ -738,10 +738,10 @@ void cacheA(const char * directory)
                 flag = 0;
             else
             {
-                char garb[9], md5_base[33];
+                char md5_base[33];
                 char filename_base[STRBUFSIZE], filename[STRBUFSIZE];
-                sscanf(buf, "%[^,], %[^,], %[^,], %[^,], %[^,], %[^,], %s",
-                       garb, garb, garb, md5_base, garb, garb, filename_base);
+                sscanf(buf, "%*[^,], %*[^,], %*[^,], %[^,], %*[^,], %*[^,], %s",
+                       md5_base, filename_base);
                 sprintf(filename, "%s/%s", directory, filename_base);
                 to_lowercase(md5_base);
                 tree = avl_insert(tree, filename, md5_base);
@@ -835,14 +835,14 @@ repeatA: /* Goto here if checksum mismatch */
                 flag = 0;
             else
             {
-                char garb[9], md5_base[33], md5_real[33];
+                char md5_base[33], md5_real[33];
                 char filename_base[STRBUFSIZE], filename[STRBUFSIZE];
                 int status;
-                off_t filesize = -1;
-                unsigned long filesize_ul;
+                off_t filesize;
+                unsigned long filesize_ul = 0;
 
-                sscanf(buf, "%[^,], %[^,], %lx, %[^,], %[^,], %[^,], %s",
-                       garb, garb, & filesize_ul, md5_base, garb, garb, filename_base);
+                sscanf(buf, "%*[^,], %*[^,], %lx, %[^,], %*[^,], %*[^,], %s",
+                       & filesize_ul, md5_base, filename_base);
                 sprintf(filename, "%s/%s", real_dir, filename_base);
                 to_lowercase(md5_base);
                 filesize = (off_t)filesize_ul;
@@ -860,7 +860,7 @@ repeatA: /* Goto here if checksum mismatch */
                     fclose(fp);
                     return EXIT_FAILURE;
                 }
-                if(filesize >= 0 && !check_size(filename, filesize)) /* Wrong size */
+                if(!check_size(filename, filesize)) /* Wrong size */
                 {
                     fclose(fp);
                     if(counter_global >= MAX_REPEAT)

@@ -57,14 +57,14 @@
 #define S_IWUSR (_S_IWRITE)
 #endif
 #if !defined (S_IRWXU)
-#define S_IRWXU (_S_IREAD | _S_IWRITE)
+#define S_IRWXU ((_S_IREAD) | (_S_IWRITE))
 #endif
 #undef   MODE_DIR
 #define  MODE_DIR       (S_IRWXU)
 #undef   MODE_FILE
 #define  MODE_FILE      (S_IRWXU)
 #undef   MODE_LOCKFILE
-#define  MODE_LOCKFILE  (S_IRUSR | S_IWUSR)
+#define  MODE_LOCKFILE  ((S_IRUSR) | (S_IWUSR))
 #endif
 
 #include <stdio.h>

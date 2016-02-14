@@ -37,7 +37,6 @@ int md5sum(const char * filename, char str[33])
     MD5_CTX context;
     size_t len;
     unsigned char buffer[1024], digest[16];
-    unsigned int i;
 
     if(file == NULL)
         return EXIT_FAILURE;
@@ -50,6 +49,7 @@ int md5sum(const char * filename, char str[33])
 
     if(str)
     {
+        size_t i;
         for(i = 0; i < 16; i++)
             sprintf(str + i * 2, "%02x", digest[i]);
     }
@@ -82,13 +82,13 @@ int crc32sum(const char * filename, char str[9])
 int sha256sum(const char * filename, char str[65])
 {
     unsigned char buf[33];
-    int i;
 
     if(!sha_file(filename, buf))
         return EXIT_FAILURE;
 
     if(str)
     {
+        size_t i;
         for(i = 0; i < 32; i++)
             sprintf(str + i * 2, "%02x", buf[i]);
     }
@@ -140,7 +140,7 @@ int sha256sum_lzma(const char * filename, char str[65])
 {
     FILE * file = fopen(filename, "rb");
     FILE * tmpf;
-    int i;
+    size_t len;
     unsigned char buffer[512];
     char name[STRBUFSIZE] = "\0";
     sha_state md;
@@ -166,16 +166,17 @@ int sha256sum_lzma(const char * filename, char str[65])
     sha_init(& md);
     do
     {
-        i = (int)fread(buffer, 1, 512, tmpf);
-        sha_process(& md, buffer, i);
+        len = fread(buffer, 1, 512, tmpf);
+        sha_process(& md, buffer, (int)len);
     }
-    while(i == 512);
+    while(len == 512);
     sha_done(& md, hash);
     fclose(tmpf);
     if(name[0] != '\0') remove(name);
 
     if(str)
     {
+        size_t i;
         for(i = 0; i < 32; i++)
             sprintf(str + i * 2, "%02x", hash[i]);
     }

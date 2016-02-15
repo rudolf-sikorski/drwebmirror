@@ -1,3 +1,17 @@
+[v1.12] - 15 Feb 2016
+* Added support of DrWeb 10.1 for OS X
+* Added support of DrWeb 5.0/6.0 for Microsoft Exchange
+* Added support of DrWeb 6.0 for IBM Lotus Domino
+* Added support of DrWeb 6.0 for Kerio WinRoute
+* Added support of DrWeb 6.0 for Kerio MailServer
+* Dropped support of DrWeb 10.0 Beta for Windows
+* Added fallback update server option
+* Fixed protocol autodetection for DrWeb 4.44 for Windows
+* Updated tricks for Apache and Nginx
+* Fixed warning about ignoring return value of tmpnam() and getcwd()
+* Optimized strlen() calls
+* Fixed some possible bugs and small errors
+
 [v1.11] - 19 Jan 2016
 * Updated default key values
 * Added support of DrWeb for BlackBerry

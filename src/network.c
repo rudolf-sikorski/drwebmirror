@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2018, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -315,7 +315,7 @@ redirect: /* Goto here if 30x received */
         }
 
         sprintf(buffer,
-                "GET http://%s:%u/%s HTTP/1.1\r\n"
+                "GET http://%s:%u/%s HTTP/1.0\r\n"
                 "Proxy-Connection: %s\r\n",
                 servername_dl, (unsigned)serverport_dl, filename_dl, conn_ka);
         if(use_proxy_auth == 1)
@@ -339,13 +339,13 @@ redirect: /* Goto here if 30x received */
             sock_fd = sock_fd_ka;
         }
 
-        sprintf(buffer, "GET /%s HTTP/1.1\r\n", filename_dl);
+        sprintf(buffer, "GET /%s HTTP/1.0\r\n", filename_dl);
     }
 
     sprintf(buffer + strlen(buffer),
             "Accept: */*\r\n"
             "Accept-Encoding: identity\r\n"
-            "Accept-Ranges: bytes\r\n"
+            "Accept-Ranges: none\r\n"
             "Host: %s:%u\r\n",
             servername_dl, (unsigned)serverport_dl);
     if(use_http_auth == 1)

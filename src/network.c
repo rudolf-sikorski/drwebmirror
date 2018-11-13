@@ -275,6 +275,7 @@ int conn_get(const char * filename)
     int8_t msgbegin;
     unsigned long msgcurr = 0;
     size_t redirect_num = 0;
+    size_t retry_num = 0;
     size_t send_count, request_len;
 
     time_t lastmod = 0;
@@ -293,6 +294,7 @@ int conn_get(const char * filename)
     printf("Downloading %s\n", filename);
 
 redirect: /* Goto here if 30x received */
+retry: /* Goto here if retry required */
     status = -1;
     msgbegin = 0;
 
@@ -602,6 +604,24 @@ redirect: /* Goto here if 30x received */
                 lastmod = mktime(& raw_time);
                 if(lastmod > 0)
                     lastmod -= tzshift_loc - tzshift;
+            }
+            /* TODO: HTTP 1.1 features are not supported */
+            else if((strcmp(field_name, "Transfer-Encoding") == 0 && strncmp(field_content, "chunked", sizeof("chunked") - 1) == 0) ||
+                    (strcmp(field_name, "Content-Disposition") == 0 && strncmp(field_content, "attachment", sizeof("attachment") - 1) == 0))
+            {
+                fprintf(ERRFP, "Error: Unsupported HTTP 1.1 header \"%s: %s\".\n", field_name, field_content);
+                conn_close(&sock_fd);
+                sock_fd_ka = SOCKET_BAD_VALUE;
+                if(retry_num < MAX_REPEAT)
+                {
+                    retry_num++;
+                    goto retry;
+                }
+                else
+                {
+                    free(buffer);
+                    return EXIT_FAILURE;
+                }
             }
         }
 

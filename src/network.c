@@ -176,6 +176,13 @@ int conn_open(sockfd_t * sock_fd, const char * server, uint16_t port)
     sock_addr.sin_port = htons(port);
     memcpy(& sock_addr.sin_addr.s_addr, host_info->h_addr_list[0], host_info->h_length);
 
+    if(more_verbose)
+    {
+        struct in_addr addr;
+        memcpy(& addr, host_info->h_addr_list[0], host_info->h_length);
+        printf("Connection info:\n * Server Name: %s\n * Port: %d\n * IP: %s\n", server, (int)port, inet_ntoa(addr));
+    }
+
 #if defined(_WIN32)
     if(connect(* sock_fd, (const struct sockaddr *)(& sock_addr), sizeof(sock_addr)) != 0 &&
             WSAGetLastError() != WSAEINPROGRESS && WSAGetLastError() != WSAEWOULDBLOCK)
@@ -295,6 +302,7 @@ int conn_get(const char * filename)
 
 redirect: /* Goto here if 30x received */
 retry: /* Goto here if retry required */
+    msgsize = 0;
     status = -1;
     msgbegin = 0;
 
@@ -605,22 +613,25 @@ retry: /* Goto here if retry required */
                 if(lastmod > 0)
                     lastmod -= tzshift_loc - tzshift;
             }
-            /* TODO: HTTP 1.1 features are not supported */
-            else if((strcmp(field_name, "Transfer-Encoding") == 0 && strncmp(field_content, "chunked", sizeof("chunked") - 1) == 0) ||
-                    (strcmp(field_name, "Content-Disposition") == 0 && strncmp(field_content, "attachment", sizeof("attachment") - 1) == 0))
+            /* TODO: Transfer-Encoding: chunked is not supported */
+            else if(strcmp(field_name, "Transfer-Encoding") == 0)
             {
-                fprintf(ERRFP, "Error: Unsupported HTTP 1.1 header \"%s: %s\".\n", field_name, field_content);
-                conn_close(&sock_fd);
-                sock_fd_ka = SOCKET_BAD_VALUE;
-                if(retry_num < MAX_REPEAT)
+                to_lowercase(field_content);
+                if(strncmp(field_content, "identity", sizeof("identity") - 1) != 0)
                 {
-                    retry_num++;
-                    goto retry;
-                }
-                else
-                {
-                    free(buffer);
-                    return EXIT_FAILURE;
+                    fprintf(ERRFP, "Error: Unsupported HTTP 1.1 header \"%s: %s\".\n", field_name, field_content);
+                    conn_close(&sock_fd);
+                    sock_fd_ka = SOCKET_BAD_VALUE;
+                    if(retry_num < MAX_REPEAT)
+                    {
+                        retry_num++;
+                        goto retry;
+                    }
+                    else
+                    {
+                        free(buffer);
+                        return EXIT_FAILURE;
+                    }
                 }
             }
         }
@@ -677,7 +688,7 @@ retry: /* Goto here if retry required */
     if(bufpos != bufend) /* Write content */
     {
         msgcurr = (unsigned long)(bufend - bufpos);
-        if(msgcurr > msgsize)
+        if(msgsize > 0 && msgcurr > msgsize)
             msgcurr = msgsize;
         if(fwrite(bufpos, sizeof(char), msgcurr, fp) != (size_t)msgcurr)
         {
@@ -692,9 +703,13 @@ retry: /* Goto here if retry required */
     }
 
     memset(buffer, 0, sizeof(char) * NETBUFSIZE);
-    while(msgcurr < msgsize)
+    while(msgsize == 0 || msgcurr < msgsize)
     {
         ssize_t recv_count = recv(sock_fd, buffer, NETBUFSIZE, 0);
+        if(recv_count == 0 && msgsize == 0)
+        {
+            break;
+        }
         if(recv_count <= 0)
         {
 #if defined(_WIN32)

@@ -123,6 +123,7 @@ void conn_cleanup()
 /* Open connection */
 static int conn_open(sockfd_t * sock_fd, const char * server, uint16_t port)
 {
+    /* nginx/1.6.2: 85.10.234.30 */
     /* openresty/1.13.6.1: 46.46.160.202 */
     struct sockaddr_in sock_addr;
     struct hostent * host_info = gethostbyname(server);
@@ -308,6 +309,7 @@ redirect: /* Goto here if 30x received */
     status = -1;
     msgbegin = 0;
     is_chunked = 0;
+    lastmod = 0;
 
     if(strcmp(servername, servername_dl) != 0 || serverport != serverport_dl)
         bsd_strlcpy(conn_ka, "close", sizeof(conn_ka));
@@ -573,49 +575,66 @@ redirect: /* Goto here if 30x received */
             {
                 sscanf(field_content, "%lu", & msgsize);
             }
-            else if(strcmp(field_name, "Last-Modified") == 0) /* Only RFC 822 (RFC 1123), sorry */
+            else if(strcmp(field_name, "Last-Modified") == 0)
             {
-                char * tmz = strrchr(field_content, ' ') + 1;
-                long tzshift_loc = 0;
+                /* https://tools.ietf.org/html/rfc2616#section-3.3.1 */
+
                 struct tm raw_time;
-#if defined(_WIN32)
-                char wkday[4], month[4];
-#endif
+                char month[4];
+                const int valid_sscanf_count = 6;
+                int current_sscanf_count = 0;
+
                 memset(&raw_time, 0, sizeof(struct tm));
-
-                if(strcmp(tmz, "GMT") != 0)
-                    sscanf(tmz, "%ld", & tzshift_loc);
-                tzshift_loc *= 60 * 60 / 100;
-
-#if defined(_WIN32)
-                sscanf(field_content, "%[^,], %d %[^ ] %d %d:%d:%d", wkday, & raw_time.tm_mday, month,
-                       & raw_time.tm_year, & raw_time.tm_hour, & raw_time.tm_min, & raw_time.tm_sec);
-                month[3] = '\0';
-                if     (strcmp(month, "Jan") == 0) raw_time.tm_mon = 0;
-                else if(strcmp(month, "Feb") == 0) raw_time.tm_mon = 1;
-                else if(strcmp(month, "Mar") == 0) raw_time.tm_mon = 2;
-                else if(strcmp(month, "Apr") == 0) raw_time.tm_mon = 3;
-                else if(strcmp(month, "May") == 0) raw_time.tm_mon = 4;
-                else if(strcmp(month, "Jun") == 0) raw_time.tm_mon = 5;
-                else if(strcmp(month, "Jul") == 0) raw_time.tm_mon = 6;
-                else if(strcmp(month, "Aug") == 0) raw_time.tm_mon = 7;
-                else if(strcmp(month, "Sep") == 0) raw_time.tm_mon = 8;
-                else if(strcmp(month, "Oct") == 0) raw_time.tm_mon = 9;
-                else if(strcmp(month, "Nov") == 0) raw_time.tm_mon = 10;
-                else if(strcmp(month, "Dec") == 0) raw_time.tm_mon = 11;
-                if(raw_time.tm_year >= 1900) raw_time.tm_year -= 1900;
-#else
-                strptime(field_content, "%a, %e %b %Y %H:%M:%S %z", & raw_time);
-#endif
-
-                /* Fixes buggy strptime */
                 raw_time.tm_wday = -1;
                 raw_time.tm_yday = -1;
                 raw_time.tm_isdst = -1;
 
-                lastmod = mktime(& raw_time);
-                if(lastmod > 0)
-                    lastmod -= tzshift_loc - tzshift;
+                /* Sun, 06 Nov 1994 08:49:37 GMT  ; RFC 822, updated by RFC 1123 */
+                if(current_sscanf_count != valid_sscanf_count)
+                    current_sscanf_count = sscanf(field_content, "%*[^,], %d %[^ ] %d %d:%d:%d",
+                                                  & raw_time.tm_mday, month, & raw_time.tm_year,
+                                                  & raw_time.tm_hour, & raw_time.tm_min, & raw_time.tm_sec);
+
+                /* Sunday, 06-Nov-94 08:49:37 GMT ; RFC 850, obsoleted by RFC 1036 */
+                if(current_sscanf_count != valid_sscanf_count)
+                    current_sscanf_count = sscanf(field_content, "%*[^,], %d-%[^-]-%d %d:%d:%d",
+                                                  & raw_time.tm_mday, month, & raw_time.tm_year,
+                                                  & raw_time.tm_hour, & raw_time.tm_min, & raw_time.tm_sec);
+
+                /* Sun Nov  6 08:49:37 1994       ; ANSI C's asctime() format */
+                if(current_sscanf_count != valid_sscanf_count)
+                    current_sscanf_count = sscanf(field_content, "%*[^ ] %[^ ] %d %d:%d:%d %d",
+                                                  month, & raw_time.tm_mday, & raw_time.tm_hour,
+                                                  & raw_time.tm_min, & raw_time.tm_sec, & raw_time.tm_year);
+
+                if(current_sscanf_count == valid_sscanf_count)
+                {
+                    month[3] = '\0';
+                    to_lowercase(month);
+                    if     (strcmp(month, "jan") == 0) raw_time.tm_mon = 0;
+                    else if(strcmp(month, "feb") == 0) raw_time.tm_mon = 1;
+                    else if(strcmp(month, "mar") == 0) raw_time.tm_mon = 2;
+                    else if(strcmp(month, "apr") == 0) raw_time.tm_mon = 3;
+                    else if(strcmp(month, "may") == 0) raw_time.tm_mon = 4;
+                    else if(strcmp(month, "jun") == 0) raw_time.tm_mon = 5;
+                    else if(strcmp(month, "jul") == 0) raw_time.tm_mon = 6;
+                    else if(strcmp(month, "aug") == 0) raw_time.tm_mon = 7;
+                    else if(strcmp(month, "sep") == 0) raw_time.tm_mon = 8;
+                    else if(strcmp(month, "oct") == 0) raw_time.tm_mon = 9;
+                    else if(strcmp(month, "nov") == 0) raw_time.tm_mon = 10;
+                    else if(strcmp(month, "dec") == 0) raw_time.tm_mon = 11;
+                    else assert(0);
+                    if(raw_time.tm_year >= 1900) raw_time.tm_year -= 1900;
+
+                    lastmod = mktime(& raw_time);
+                    if(lastmod > 0)
+                        lastmod += tzshift;
+                }
+                else
+                {
+                    lastmod = 0;
+                    fprintf(ERRFP, "Warning: Can't parse Last-Modified: %s\n", field_content);
+                }
             }
             else if(strcmp(field_name, "Transfer-Encoding") == 0)
             {

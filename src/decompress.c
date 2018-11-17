@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2018, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -17,7 +17,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
-   This code based on LZMA SDK 15.14, see lzma1514.7z/C/Util/Lzma/LzmaUtil.c
+   This code based on LZMA SDK 18.05, see lzma1514.7z/C/Util/Lzma/LzmaUtil.c
 */
 
 #include "drwebmirror.h"
@@ -28,6 +28,7 @@
 /* Begin of functions from LzmaUtil */
 #define IN_BUF_SIZE (1 << 16)
 #define OUT_BUF_SIZE (1 << 16)
+
 
 static SRes Decode2(CLzmaDec *state, ISeqOutStream *outStream, ISeqInStream *inStream,
     UInt64 unpackSize)
@@ -82,6 +83,7 @@ static SRes Decode2(CLzmaDec *state, ISeqOutStream *outStream, ISeqInStream *inS
   }
 }
 
+
 static SRes Decode(ISeqOutStream *outStream, ISeqInStream *inStream)
 {
   UInt64 unpackSize;
@@ -132,7 +134,7 @@ int decompress_lzma(FILE * input, FILE * output)
     outStream.file.file = output;
 #endif
 
-    result = Decode(& outStream.s, & inStream.s);
+    result = Decode(& outStream.vt, & inStream.vt);
 
     if(result != SZ_OK)
     {
@@ -174,7 +176,7 @@ off_t get_size_lzma(const char * filename)
     inStream.file.file = file;
 #endif
 
-    if(SeqInStream_Read(& inStream.s, header, sizeof(header)) != 0)
+    if(SeqInStream_Read(& inStream.vt, header, sizeof(header)) != 0)
     {
         fclose(file);
         return -1;

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2018, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -22,26 +22,31 @@
 #include <signal.h>
 #endif
 
-#define OPT_KEYFILE      0x01
-#define OPT_USER         0x02
-#define OPT_MD5          0x03
-#define OPT_SYSHASH      0x04
-#define OPT_AGENT        0x05
-#define OPT_SERVER       0x06
-#define OPT_SERVER_FB    0x07
-#define OPT_HTTP_USER    0x08
-#define OPT_HTTP_PASS    0x09
-#define OPT_PORT         0x0A
-#define OPT_PROTO        0x0B
-#define OPT_REMOTE       0x0C
-#define OPT_LOCAL        0x0D
-#define OPT_PROXY        0x0E
-#define OPT_PROXY_USER   0x0F
-#define OPT_PROXY_PASS   0x10
-#define OPT_FAST         0x11
-#define OPT_VERBOSE      0x12
-#define OPT_MORE_VERBOSE 0x13
-#define OPT_HELP         0x14
+/* Commandline option types */
+typedef enum
+{
+    OPT_KEYFILE,
+    OPT_USER,
+    OPT_MD5,
+    OPT_SYSHASH,
+    OPT_AGENT,
+    OPT_SERVER,
+    OPT_SERVER_FB,
+    OPT_HTTP_USER,
+    OPT_HTTP_PASS,
+    OPT_HTTP_VER,
+    OPT_PORT,
+    OPT_PROTO,
+    OPT_REMOTE,
+    OPT_LOCAL,
+    OPT_PROXY,
+    OPT_PROXY_USER,
+    OPT_PROXY_PASS,
+    OPT_FAST,
+    OPT_VERBOSE,
+    OPT_MORE_VERBOSE,
+    OPT_HELP
+} option;
 
 /* Flag of use verbose output */
 int8_t verbose;
@@ -65,6 +70,7 @@ void show_help()
            "  -S,  --server-fb=ADDRESS[:PORT]  set fallback update server address and port\n"
            "       --http-user=USER            set username for HTTP connection\n"
            "       --http-password=PASS        set password for HTTP connection\n"
+           "       --http-version=VER          set HTTP protocol version (1.0 or 1.1)\n"
            "  -p,  --proto=PROTO               set update protocol (4, 5, 7 or A)\n"
            "  -r,  --remote=PATH               set remote directory or file\n"
            "  -l,  --local=DIR                 set local directory\n"
@@ -270,7 +276,7 @@ int main(int argc, char * argv[])
     int opt = 0, i;
     int8_t o_k = 0, o_a = 0, o_s = 0, o_p = 0, o_r = 0, o_l = 0, o_v = 0, o_h = 0;
     int8_t o_u = 0, o_m = 0, o_H = 0, o_P = 0, o_V = 0, o_f = 0, o_pr = 0, o_pru = 0, o_prp = 0;
-    int8_t o_htu = 0, o_htp = 0, o_sfb = 0;
+    int8_t o_htu = 0, o_htp = 0, o_htv = 0, o_sfb = 0;
     char * optval = NULL;
     char proto = '\0';
     char * workdir = NULL;
@@ -285,7 +291,7 @@ int main(int argc, char * argv[])
     char * inp_user = NULL, * inp_md5 = NULL;
     int status = EXIT_FAILURE;
     char * proxy_user = NULL, * proxy_pass = NULL;
-    char * http_user = NULL, * http_pass = NULL;
+    char * http_user = NULL, * http_pass = NULL, * http_ver = NULL;
     char * servername_fb = NULL;
 
 #if !defined(_WIN32)
@@ -319,6 +325,8 @@ int main(int argc, char * argv[])
                     opt = OPT_HTTP_USER;
                 else if(strstr(argv[i] + 2, "http-password=") == argv[i] + 2)
                     opt = OPT_HTTP_PASS;
+                else if(strstr(argv[i] + 2, "http-version=") == argv[i] + 2)
+                    opt = OPT_HTTP_VER;
                 else if(strstr(argv[i] + 2, "port=") == argv[i] + 2) /* Deprecated */
                     opt = OPT_PORT;
                 else if(strstr(argv[i] + 2, "proto=") == argv[i] + 2)
@@ -351,7 +359,8 @@ int main(int argc, char * argv[])
                 if(opt == OPT_KEYFILE || opt == OPT_USER || opt == OPT_MD5 || opt == OPT_SYSHASH ||
                    opt == OPT_AGENT || opt == OPT_SERVER || opt == OPT_PORT || opt == OPT_PROTO ||
                    opt == OPT_REMOTE || opt == OPT_LOCAL || opt == OPT_PROXY || opt == OPT_PROXY_USER ||
-                   opt == OPT_PROXY_PASS || opt == OPT_HTTP_USER || opt == OPT_HTTP_PASS || opt == OPT_SERVER_FB)
+                   opt == OPT_PROXY_PASS || opt == OPT_HTTP_USER || opt == OPT_HTTP_PASS ||
+                   opt == OPT_HTTP_VER || opt == OPT_SERVER_FB)
                 {
                     optval = strchr(argv[i], '=');
                     if(optval)
@@ -470,6 +479,10 @@ int main(int argc, char * argv[])
             o_htp++;
             http_pass = optval;
             break;
+        case OPT_HTTP_VER:
+            o_htv++;
+            http_ver = optval;
+            break;
         case OPT_PORT: /* Deprecated */
             o_P++;
             serverport = atoi(optval);
@@ -583,6 +596,21 @@ int main(int argc, char * argv[])
     }
     else
         use_http_auth = 0;
+
+    if(o_htv)
+    {
+        if(strcmp(http_ver, "1.0") != 0 && strcmp(http_ver, "1.1") != 0)
+        {
+            fprintf(ERRFP, "Error: Incorrect HTTP protocol version.\n\n");
+            show_hint();
+            return EXIT_FAILURE;
+        }
+        bsd_strlcpy(http_version, http_ver, sizeof(http_version));
+    }
+    else
+    {
+        bsd_strlcpy(http_version, "1.1", sizeof(http_version));
+    }
 
     if(!o_k)
     {

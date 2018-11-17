@@ -52,6 +52,8 @@ extern const char * hstrerror(int err);
 char servername[256];
 /* Server port */
 uint16_t serverport;
+/* HTTP version */
+char http_version[4];
 /* Server auth */
 int8_t use_http_auth;
 char http_auth[77];
@@ -326,9 +328,9 @@ redirect: /* Goto here if 30x received */
         }
 
         sprintf(buffer,
-                "GET http://%s:%u/%s HTTP/1.1\r\n"
+                "GET http://%s:%u/%s HTTP/%s\r\n"
                 "Proxy-Connection: %s\r\n",
-                servername_dl, (unsigned)serverport_dl, filename_dl, conn_ka);
+                servername_dl, (unsigned)serverport_dl, filename_dl, http_version, conn_ka);
         if(use_proxy_auth == 1)
             sprintf(buffer + strlen(buffer),
                     "Proxy-Authorization: Basic %s\r\n",
@@ -350,7 +352,7 @@ redirect: /* Goto here if 30x received */
             sock_fd = sock_fd_ka;
         }
 
-        sprintf(buffer, "GET /%s HTTP/1.1\r\n", filename_dl);
+        sprintf(buffer, "GET /%s HTTP/%s\r\n", filename_dl, http_version);
     }
 
     sprintf(buffer + strlen(buffer),
@@ -630,6 +632,7 @@ redirect: /* Goto here if 30x received */
                 else
                 {
                     fprintf(ERRFP, "Error: Unsupported HTTP 1.1 header \"%s: %s\".\n", field_name, field_content);
+                    fprintf(ERRFP, "Please consider using the --http-version=1.0 option if problem persists.\n");
                     conn_close(&sock_fd);
                     sock_fd_ka = SOCKET_BAD_VALUE;
                     free(buffer);

@@ -107,6 +107,8 @@ extern char key_md5sum[33];
 extern char servername[256];
 /* Server port */
 extern uint16_t serverport;
+/* HTTP version */
+extern char http_version[4];
 /* Server auth */
 extern int8_t use_http_auth;
 extern char http_auth[77];

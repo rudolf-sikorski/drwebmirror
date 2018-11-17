@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2018, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -78,7 +78,7 @@ int parse_keyfile(const char * filename)
 }
 
 /* Build caching tree for v4 */
-void cache4()
+static void cache4()
 {
     char buf[STRBUFSIZE];
     FILE * fp;
@@ -103,7 +103,9 @@ void cache4()
             * strchr(filename, ',') = '\0';
             tmp = strchr(filename, '|'); /* if some as "!drwreg.exe|-xi, FE7E4B36" */
             if(tmp) * tmp = '\0';
-            bsd_strlcpy(crc_base, strchr(buf, ',') + 2, sizeof(crc_base));
+            tmp = strchr(buf, ',');
+            do tmp++; while(* tmp == ' ');
+            bsd_strlcpy(crc_base, tmp, sizeof(crc_base));
             while(crc_base[0] == '0') /* if base crc32 beign with zero */
                 memmove(crc_base, crc_base + 1, sizeof(char) * strlen(crc_base));
             tree = avl_insert(tree, filename, crc_base);
@@ -207,7 +209,9 @@ repeat4: /* Goto here if checksum mismatch */
             * strchr(filename, ',') = '\0';
             tmp = strchr(filename, '|'); /* if some as "!drwreg.exe|-xi, FE7E4B36" */
             if(tmp) * tmp = '\0';
-            bsd_strlcpy(crc_base, strchr(buf, ',') + 2, sizeof(crc_base));
+            tmp = strchr(buf, ',');
+            do tmp++; while(* tmp == ' ');
+            bsd_strlcpy(crc_base, tmp, sizeof(crc_base));
             while(crc_base[0] == '0') /* if base crc32 beign with zero */
                 memmove(crc_base, crc_base + 1, sizeof(char) * strlen(crc_base));
 
@@ -269,7 +273,7 @@ repeat4: /* Goto here if checksum mismatch */
 }
 
 /* Build caching tree for v5 */
-void cache5()
+static void cache5()
 {
     char buf[STRBUFSIZE];
     FILE * fp;
@@ -294,7 +298,9 @@ void cache5()
             * strchr(filename, ',') = '\0';
             tmp = strchr(filename, '|'); /* if some as "!drwreg.exe|-xi, ..." */
             if(tmp) * tmp = '\0';
-            bsd_strlcpy(sha_base, strchr(buf, ',') + 2, sizeof(sha_base));
+            tmp = strchr(buf, ',');
+            do tmp++; while(* tmp == ' ');
+            bsd_strlcpy(sha_base, tmp, sizeof(sha_base));
             tree = avl_insert(tree, filename, sha_base);
             strcat(filename, ".lzma");
             tree = avl_insert(tree, filename, sha_base);
@@ -390,10 +396,10 @@ repeat5: /* Goto here if checksum mismatch */
         else if(buf[0] == '+' || buf[0] == '=' || buf[0] == '!') /* Need to download this file */
         {
             char filename[STRBUFSIZE];
-            char sha_base[65], sha_real[65];
-            off_t filesize = -1;
-            unsigned long filesize_ul = 0;
+            char sha_base[65], sha_real[65], sha_lzma_base[65], sha_lzma_real[65];
+            off_t filesize = -1, filesize_lzma = -1;
             char * beg = buf + 1, * tmp;
+            int8_t has_sha_lzma = 0;
             tmp = strchr(beg, '>'); /* if some as "=<w95>spider.vxd, ..." */
             if(tmp) beg = tmp + 1;
             tmp = strrchr(beg, '\\'); /* if some as "=<wnt>%SYSDIR%\spider.cpl, ..." */
@@ -402,12 +408,36 @@ repeat5: /* Goto here if checksum mismatch */
             * strchr(filename, ',') = '\0';
             tmp = strchr(filename, '|'); /* if some as "!drwreg.exe|-xi, ..." */
             if(tmp) * tmp = '\0';
-            bsd_strlcpy(sha_base, strchr(buf, ',') + 2, sizeof(sha_base));
-            tmp = strrchr(buf, ',');
+            tmp = strchr(buf, ',');
+            do tmp++; while(* tmp == ' ');
+            bsd_strlcpy(sha_base, tmp, sizeof(sha_base));
+            tmp += sizeof(sha_base) - 1;
+            tmp = strchr(tmp, ',');
             if(tmp)
             {
-                sscanf(tmp + 1, "%lu", & filesize_ul);
+                unsigned long filesize_ul = 0;
+                tmp++;
+                sscanf(tmp, "%lu", & filesize_ul);
                 filesize = (off_t)filesize_ul;
+
+                /* optional LZMA SHA256 + LZMA size */
+                tmp = strchr(tmp, ',');
+                if(tmp)
+                {
+                    do tmp++; while(* tmp == ' ');
+                    has_sha_lzma = 1;
+                    bsd_strlcpy(sha_lzma_base, tmp, sizeof(sha_lzma_base));
+                    tmp += sizeof(sha_lzma_base) - 1;
+
+                    tmp = strchr(tmp, ',');
+                    if(tmp)
+                    {
+                        filesize_ul = 0;
+                        tmp++;
+                        sscanf(tmp, "%lu", & filesize_ul);
+                        filesize_lzma = (off_t)filesize_ul;
+                    }
+                }
             }
 
             status = download_check(filename, sha_base, sha_real, & sha256sum, "SHA256");
@@ -459,7 +489,8 @@ repeat5: /* Goto here if checksum mismatch */
                     fclose(fp);
                     return EXIT_FAILURE;
                 }
-                else if(filesize >= 0 && !check_size_lzma(buf, filesize)) /* Wrong size */
+                else if((filesize >= 0 && !check_size_lzma(buf, filesize)) ||
+                        (filesize_lzma >= 0 && !check_size(buf, filesize_lzma))) /* Wrong size */
                 {
                     fclose(fp);
                     if(counter_global >= MAX_REPEAT)
@@ -467,6 +498,30 @@ repeat5: /* Goto here if checksum mismatch */
                     counter_global++;
                     sleep(REPEAT_SLEEP);
                     goto repeat5; /* Yes, it is goto. Sorry, Dijkstra... */
+                }
+                else if(!use_fast && has_sha_lzma)
+                {
+                    if(verbose)
+                        printf("%s %s, checking SHA256 ", buf, (status == DL_EXIST ? "exist" : "downloaded"));
+                    if(sha256sum(buf, sha_lzma_real) != EXIT_SUCCESS || strcmp(sha_lzma_base, sha_lzma_real) != 0) /* Sum mismatched */
+                    {
+                        if(verbose)
+                            printf("[NOT OK]\n");
+
+                        fprintf(ERRFP, "Warning: SHA256 mismatch (real=\"%s\", base=\"%s\")\n", sha_lzma_real, sha_lzma_base);
+
+                        fclose(fp);
+                        if(counter_global >= MAX_REPEAT)
+                            return EXIT_FAILURE;
+                        counter_global++;
+                        sleep(REPEAT_SLEEP);
+                        goto repeat5; /* Yes, it is goto. Sorry, Dijkstra... */
+                    }
+                    else
+                    {
+                        if(verbose)
+                            printf("[OK]\n");
+                    }
                 }
             }
         }
@@ -486,7 +541,7 @@ repeat5: /* Goto here if checksum mismatch */
 }
 
 /* Build caching tree for v7 */
-void cache7(const char * file, const char * directory)
+static void cache7(const char * file, const char * directory)
 {
     char buf[STRBUFSIZE];
     FILE * fp = fopen(file, "r");
@@ -721,7 +776,7 @@ repeat7: /* Goto here if hashsum mismatch */
 }
 
 /* Build caching tree for Android */
-void cacheA(const char * directory)
+static void cacheA(const char * directory)
 {
     char buf[STRBUFSIZE];
     FILE * fp;

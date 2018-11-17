@@ -48,6 +48,17 @@ typedef enum
     OPT_HELP
 } option;
 
+/* Update protocol versions */
+typedef enum
+{
+    PROTO_INVALID,
+    PROTO_VER_4,    /* flat file drweb32.lst, crc32 */
+    PROTO_VER_5,    /* flat file version.lst, sha256 */
+    PROTO_VER_5_2,  /* flat file version2.lst, sha256 */
+    PROTO_VER_7,    /* xml files, sha256 */
+    PROTO_VER_A     /* flat file for mobile devices */
+} protocol_version;
+
 /* Flag of use verbose output */
 int8_t verbose;
 /* Flag of use even more verbose output */
@@ -71,7 +82,7 @@ void show_help(void)
            "       --http-user=USER            set username for HTTP connection\n"
            "       --http-password=PASS        set password for HTTP connection\n"
            "       --http-version=VER          set HTTP protocol version (1.0 or 1.1)\n"
-           "  -p,  --proto=PROTO               set update protocol (4, 5, 7 or A)\n"
+           "  -p,  --proto=PROTO               set update protocol (4, 5, 5.2, 7 or A)\n"
            "  -r,  --remote=PATH               set remote directory or file\n"
            "  -l,  --local=DIR                 set local directory\n"
            "       --proxy=ADDRESS[:PORT]      set HTTP proxy address and port\n"
@@ -146,11 +157,11 @@ void show_help(void)
            "|                                   | unix/1100/dws                     |  5  |\n"
            "|                                   | unix/1100/macosx                  |  5  |\n"
            "|                                   | unix/1100/antispam                |  5  |\n"
-           "| 11.1 beta for Unix                | unix/1110/version                 | 5(?)|\n"
-           "|                                   | unix/1110/vdb                     | 5(?)|\n"
-           "|                                   | unix/1110/vdb64                   | 5(?)|\n"
-           "|                                   | unix/1110/dws                     | 5(?)|\n"
-           "|                                   | unix/1110/antispam                | 5(?)|\n"
+           "| 11.1 beta for Unix                | unix/1110/version                 | 5.2 |\n"
+           "|                                   | unix/1110/vdb                     | 5.2 |\n"
+           "|                                   | unix/1110/vdb64                   | 5.2 |\n"
+           "|                                   | unix/1110/dws                     | 5.2 |\n"
+           "|                                   | unix/1110/antispam                | 5.2 |\n"
            "|-----------------------------------+-----------------------------------+-----|\n"
            "| 9.0 LiveDisk                      | livecd/900/windows                | 4/5 |\n"
            "|-----------------------------------+-----------------------------------+-----|\n"
@@ -224,7 +235,7 @@ void detect_useragent(const char * dir)
 }
 
 /* Autodetect update protocol */
-char detect_proto(const char * dir)
+protocol_version detect_proto(const char * dir)
 {
     const char * proto_4[] =
     {
@@ -247,14 +258,67 @@ char detect_proto(const char * dir)
     size_t i;
     for(i = 0; i < sizeof(proto_4) / sizeof(char *); i++)
         if(strncmp(dir, proto_4[i], strlen(proto_4[i])) == 0)
-            return '4';
+            return PROTO_VER_4;
     for(i = 0; i < sizeof(proto_7) / sizeof(char *); i++)
         if(strncmp(dir, proto_7[i], strlen(proto_7[i])) == 0)
-            return '7';
+            return PROTO_VER_7;
     for(i = 0; i < sizeof(proto_A) / sizeof(char *); i++)
         if(strncmp(dir, proto_A[i], strlen(proto_A[i])) == 0)
-            return 'A';
-    return '5';
+            return PROTO_VER_A;
+    if(strncmp(dir, "unix/", strlen("unix/")) == 0)
+    {
+        const char * subdir = dir + strlen("unix/");
+        size_t version = 0;
+        for(; * subdir != '/' && * subdir != '\0'; subdir++)
+            version = version * 10 + (size_t)(* subdir - '0');
+        if(version >= 1110)
+            return PROTO_VER_5_2;
+
+    }
+    return PROTO_VER_5;
+}
+
+/* Parse update protocol */
+protocol_version parse_proto(const char * str)
+{
+    if(strcmp(str, "4") == 0)
+        return PROTO_VER_4;
+    if(strcmp(str, "5") == 0)
+        return PROTO_VER_5;
+    if(strcmp(str, "5.2") == 0)
+        return PROTO_VER_5_2;
+    if(strcmp(str, "7") == 0)
+        return PROTO_VER_7;
+    if(strcmp(str, "a") == 0 || strcmp(str, "A") == 0)
+        return PROTO_VER_A;
+    return PROTO_INVALID;
+}
+
+/* Get update protocol string */
+const char * protocol_version_to_string(protocol_version proto)
+{
+    static const char * const v4_str = "4";
+    static const char * const v5_str = "5";
+    static const char * const v52_str = "5.2";
+    static const char * const v7_str = "7";
+    static const char * const va_str = "A";
+    static const char * const invalid_str = "Invalid";
+    switch(proto)
+    {
+    case PROTO_VER_4:
+        return v4_str;
+    case PROTO_VER_5:
+        return v5_str;
+    case PROTO_VER_5_2:
+        return v52_str;
+    case PROTO_VER_7:
+        return v7_str;
+    case PROTO_VER_A:
+        return va_str;
+    default:
+        break;
+    }
+    return invalid_str;
 }
 
 /* Autodetect update server */
@@ -295,7 +359,7 @@ int main(int argc, char * argv[])
     int8_t o_u = 0, o_m = 0, o_H = 0, o_P = 0, o_V = 0, o_f = 0, o_pr = 0, o_pru = 0, o_prp = 0;
     int8_t o_htu = 0, o_htp = 0, o_htv = 0, o_sfb = 0;
     char * optval = NULL;
-    char proto = '\0';
+    protocol_version proto = PROTO_INVALID;
     char * workdir = NULL;
     char cwd[STRBUFSIZE];
     time_t time1;
@@ -506,8 +570,7 @@ int main(int argc, char * argv[])
             break;
         case OPT_PROTO:
             o_p++;
-            proto = optval[0];
-            if(proto == 'a') proto = 'A';
+            proto = parse_proto(optval);
             break;
         case OPT_REMOTE:
             o_r++;
@@ -558,7 +621,7 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
-    if(o_p && proto != '4' && proto != '5' && proto != '7' && proto != 'A')
+    if(o_p && proto == PROTO_INVALID)
     {
         fprintf(ERRFP, "Error: Incorrect version of protocol.\n\n");
         show_hint();
@@ -568,7 +631,7 @@ int main(int argc, char * argv[])
     if(!o_p)
         proto = detect_proto(remotedir);
 
-    if(proto == 'A')
+    if(proto == PROTO_VER_A)
         use_android = 1;
     else
         use_android = 0;
@@ -792,7 +855,7 @@ update_begin:
 
     conn_startup();
 
-    printf("---------- Update bases (v%c) ----------\n", proto);
+    printf("---------- Update bases (v%s) ----------\n", protocol_version_to_string(proto));
     printf("Date:  %s\n", time3);
     printf("From:  http://%s:%u/%s\n", servername, (unsigned)serverport, remotedir);
     if(getcwd(cwd, sizeof(cwd)) == NULL)
@@ -831,17 +894,23 @@ update_begin:
 
     switch(proto)
     {
-    case '4':
+    case PROTO_VER_4:
         status = update4();
         break;
-    case '5':
+    case PROTO_VER_5:
         status = update5();
         break;
-    case '7':
+    case PROTO_VER_5_2:
+        status = update52();
+        break;
+    case PROTO_VER_7:
         status = update7();
         break;
-    case 'A':
+    case PROTO_VER_A:
         status = updateA();
+        break;
+    default:
+        status = EXIT_FAILURE;
         break;
     }
 

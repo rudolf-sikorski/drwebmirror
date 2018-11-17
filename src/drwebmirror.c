@@ -116,7 +116,7 @@ static void cache4(void)
     fclose(fp);
 }
 
-/* Update using version 4 of update protocol (flat file, crc32) */
+/* Update using version 4 of update protocol (flat file drweb32.lst, crc32) */
 int update4(void)
 {
     char buf[STRBUFSIZE];
@@ -273,12 +273,12 @@ repeat4: /* Goto here if checksum mismatch */
 }
 
 /* Build caching tree for v5 */
-static void cache5(void)
+static void cache5(const char * const version_file)
 {
     char buf[STRBUFSIZE];
     FILE * fp;
     int8_t flag = 1;
-    sprintf(buf, "%s/%s", remotedir, "version.lst");
+    sprintf(buf, "%s/%s", remotedir, version_file);
     fp = fopen(buf, "r");
     if(!fp) return;
     while(flag)
@@ -309,8 +309,8 @@ static void cache5(void)
     fclose(fp);
 }
 
-/* Update using version 5 of update protocol (flat file, sha256) */
-int update5(void)
+/* Update using version 5 or 5v2 of update protocol */
+static int update5x_internal(const char * const version_file)
 {
     char buf[STRBUFSIZE];
     FILE * fp;
@@ -329,18 +329,18 @@ int update5(void)
 
     if(use_fast)
     {
-        sprintf(buf, "%s/%s", remotedir, "version.lst");
+        sprintf(buf, "%s/%s", remotedir, version_file);
         status = sha256sum(buf, main_hash_old);
         if(status != EXIT_SUCCESS)
         {
             use_fast = 0;
-            fprintf(ERRFP, "Warning: version.lst was not found\n");
+            fprintf(ERRFP, "Warning: %s was not found\n", version_file);
             fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
         }
         else
         {
             main_size_old = get_size(buf);
-            cache5();
+            cache5(version_file);
         }
     }
 
@@ -351,7 +351,7 @@ repeat5: /* Goto here if checksum mismatch */
         fprintf(ERRFP, "Warning: Fast mode has been disabled\n");
     }
 
-    sprintf(buf, "%s/%s", remotedir, "version.lst");
+    sprintf(buf, "%s/%s", remotedir, version_file);
     status = download(buf);
     if(!DL_SUCCESS(status))
         return EXIT_FAILURE;
@@ -370,7 +370,7 @@ repeat5: /* Goto here if checksum mismatch */
         }
     }
     /* Optional files */
-    sprintf(buf, "%s/%s", remotedir, "version.lst.lzma");
+    sprintf(buf, "%s/%s.lzma", remotedir, version_file);
     download(buf);
     /* Usually, these files can be downloaded with version.lst */
     /* Uncomment lines below if something wrong */
@@ -384,9 +384,16 @@ repeat5: /* Goto here if checksum mismatch */
     download(buf);
     sprintf(buf, "%s/%s", remotedir, "drweb32.flg.lzma");
     download(buf);
+    if(strcmp(version_file, "version.lst") != 0)
+    {
+        sprintf(buf, "%s/%s", remotedir, "version.lst");
+        download(buf);
+        sprintf(buf, "%s/%s", remotedir, "version.lst.lzma");
+        download(buf);
+    }
 
     /* Main file */
-    sprintf(buf, "%s/%s", remotedir, "version.lst");
+    sprintf(buf, "%s/%s", remotedir, version_file);
     fp = fopen(buf, "r");
     flag = 1;
     while(flag)
@@ -540,6 +547,18 @@ repeat5: /* Goto here if checksum mismatch */
     return EXIT_SUCCESS;
 }
 
+/* Update using version 5 of update protocol (flat file version.lst, sha256) */
+int update5(void)
+{
+    return update5x_internal("version.lst");
+}
+
+/* Update using version 5.2 of update protocol (flat file version2.lst, sha256) */
+int update52(void)
+{
+    return update5x_internal("version2.lst");
+}
+
 /* Build caching tree for v7 */
 static void cache7(const char * file, const char * directory)
 {
@@ -564,7 +583,7 @@ static void cache7(const char * file, const char * directory)
     fclose(fp);
 }
 
-/* Update using version 7 of update protocol (xml file, sha256) */
+/* Update using version 7 of update protocol (xml files, sha256) */
 int update7(void)
 {
     char buf[STRBUFSIZE];
@@ -811,7 +830,7 @@ static void cacheA(const char * directory)
     fclose(fp);
 }
 
-/* Update using Android update protocol */
+/* Update using Android update protocol (flat file for mobile devices) */
 int updateA(void)
 {
     char buf[STRBUFSIZE], real_dir[STRBUFSIZE];

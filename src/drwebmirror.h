@@ -153,13 +153,15 @@ size_t bsd_strlcpy(char * dst, const char * src, size_t dsize);
 /* Drwebmirror */
 /* Get UserID and MD5 sum from keyfile */
 int parse_keyfile(const char * filename);
-/* Update using version 4 of update protocol (flat file, crc32) */
+/* Update using version 4 of update protocol (flat file drweb32.lst, crc32) */
 int update4(void);
-/* Update using version 5 of update protocol (flat file, sha256) */
+/* Update using version 5 of update protocol (flat file version.lst, sha256) */
 int update5(void);
-/* Update using version 7 of update protocol (xml file, sha256) */
+/* Update using version 5.2 of update protocol (flat file version2.lst, sha256) */
+int update52(void);
+/* Update using version 7 of update protocol (xml files, sha256) */
 int update7(void);
-/* Update using Android update protocol */
+/* Update using Android update protocol (flat file for mobile devices) */
 int updateA(void);
 
 /* Network */

@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2018, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -67,6 +67,7 @@
 #define  MODE_LOCKFILE  ((S_IRUSR) | (S_IWUSR))
 #endif
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -167,8 +168,6 @@ int updateA();
 #define DL_TRY_AGAIN    0x03
 #define DL_NOT_FOUND    0x04
 #define DL_SUCCESS(st) ((st)==(DL_EXIST)||(st)==(DL_DOWNLOADED))
-/* Get file <filename> from server */
-int conn_get(const char * filename);
 /* Startup network */
 void conn_startup();
 /* Cleanup network */

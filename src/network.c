@@ -74,7 +74,7 @@ char proxy_auth[77];
 sockfd_t sock_fd_ka;
 
 /* Check socket status */
-int socket_good(sockfd_t * sock_fd)
+static int socket_good(sockfd_t * sock_fd)
 {
 #if defined(_WIN32)
     return * sock_fd != INVALID_SOCKET;
@@ -84,7 +84,7 @@ int socket_good(sockfd_t * sock_fd)
 }
 
 /* Close connection */
-void conn_close(sockfd_t * sock_fd)
+static void conn_close(sockfd_t * sock_fd)
 {
 #if defined(_WIN32)
     closesocket(* sock_fd);
@@ -119,8 +119,9 @@ void conn_cleanup()
 }
 
 /* Open connection */
-int conn_open(sockfd_t * sock_fd, const char * server, uint16_t port)
+static int conn_open(sockfd_t * sock_fd, const char * server, uint16_t port)
 {
+    /* openresty/1.13.6.1: 46.46.160.202 */
     struct sockaddr_in sock_addr;
     struct hostent * host_info = gethostbyname(server);
     struct timeval tv;
@@ -272,7 +273,7 @@ int conn_open(sockfd_t * sock_fd, const char * server, uint16_t port)
 }
 
 /* Get file <filename> from server */
-int conn_get(const char * filename)
+static int conn_get(const char * filename)
 {
     sockfd_t sock_fd;
 
@@ -282,8 +283,8 @@ int conn_get(const char * filename)
     int8_t msgbegin;
     unsigned long msgcurr = 0;
     size_t redirect_num = 0;
-    size_t retry_num = 0;
     size_t send_count, request_len;
+    int8_t is_chunked = 0;
 
     time_t lastmod = 0;
     FILE * fp;
@@ -301,10 +302,10 @@ int conn_get(const char * filename)
     printf("Downloading %s\n", filename);
 
 redirect: /* Goto here if 30x received */
-retry: /* Goto here if retry required */
     msgsize = 0;
     status = -1;
     msgbegin = 0;
+    is_chunked = 0;
 
     if(strcmp(servername, servername_dl) != 0 || serverport != serverport_dl)
         bsd_strlcpy(conn_ka, "close", sizeof(conn_ka));
@@ -325,7 +326,7 @@ retry: /* Goto here if retry required */
         }
 
         sprintf(buffer,
-                "GET http://%s:%u/%s HTTP/1.0\r\n"
+                "GET http://%s:%u/%s HTTP/1.1\r\n"
                 "Proxy-Connection: %s\r\n",
                 servername_dl, (unsigned)serverport_dl, filename_dl, conn_ka);
         if(use_proxy_auth == 1)
@@ -349,13 +350,13 @@ retry: /* Goto here if retry required */
             sock_fd = sock_fd_ka;
         }
 
-        sprintf(buffer, "GET /%s HTTP/1.0\r\n", filename_dl);
+        sprintf(buffer, "GET /%s HTTP/1.1\r\n", filename_dl);
     }
 
     sprintf(buffer + strlen(buffer),
             "Accept: */*\r\n"
             "Accept-Encoding: identity\r\n"
-            "Accept-Ranges: none\r\n"
+            "Accept-Ranges: bytes\r\n"
             "Host: %s:%u\r\n",
             servername_dl, (unsigned)serverport_dl);
     if(use_http_auth == 1)
@@ -429,6 +430,7 @@ retry: /* Goto here if retry required */
         bufpos = bufend;
         recv_count = recv(sock_fd, bufpos, NETBUFSIZE - old_buf, 0);
         bufend = bufpos + recv_count;
+        * bufend = '\0';
         if(recv_count <= 0)
         {
 #if defined(_WIN32)
@@ -613,25 +615,25 @@ retry: /* Goto here if retry required */
                 if(lastmod > 0)
                     lastmod -= tzshift_loc - tzshift;
             }
-            /* TODO: Transfer-Encoding: chunked is not supported */
             else if(strcmp(field_name, "Transfer-Encoding") == 0)
             {
                 to_lowercase(field_content);
-                if(strncmp(field_content, "identity", sizeof("identity") - 1) != 0)
+                if(strcmp(field_content, "chunked") == 0)
+                {
+                    is_chunked = 1;
+                }
+                else if(strcmp(field_content, "identity") == 0)
+                {
+                    is_chunked = 0;
+                }
+                /* TODO: Transfer-Encoding: compress/deflate/gzip/mixed is not supported */
+                else
                 {
                     fprintf(ERRFP, "Error: Unsupported HTTP 1.1 header \"%s: %s\".\n", field_name, field_content);
                     conn_close(&sock_fd);
                     sock_fd_ka = SOCKET_BAD_VALUE;
-                    if(retry_num < MAX_REPEAT)
-                    {
-                        retry_num++;
-                        goto retry;
-                    }
-                    else
-                    {
-                        free(buffer);
-                        return EXIT_FAILURE;
-                    }
+                    free(buffer);
+                    return EXIT_FAILURE;
                 }
             }
         }
@@ -652,6 +654,7 @@ retry: /* Goto here if retry required */
             memmove(buffer, bufpos, (size_t)(bufend - bufpos));
             bufend -= (bufpos - buffer);
             bufpos = buffer;
+            * bufend = '\0';
         }
     }
 
@@ -685,63 +688,129 @@ retry: /* Goto here if retry required */
         fflush(stdout);
     }
 
-    if(bufpos != bufend) /* Write content */
-    {
-        msgcurr = (unsigned long)(bufend - bufpos);
-        if(msgsize > 0 && msgcurr > msgsize)
-            msgcurr = msgsize;
-        if(fwrite(bufpos, sizeof(char), msgcurr, fp) != (size_t)msgcurr)
-        {
-            if(more_verbose) printf("\n\n");
-            fprintf(ERRFP, "Warning: Not all bytes was written\n");
-        }
-        if(more_verbose)
-        {
-            printf("W");
-            fflush(stdout);
-        }
-    }
+    if(is_chunked)
+        msgsize = 0;
+    msgcurr = 0;
 
-    memset(buffer, 0, sizeof(char) * NETBUFSIZE);
-    while(msgsize == 0 || msgcurr < msgsize)
+    while(1)
     {
-        ssize_t recv_count = recv(sock_fd, buffer, NETBUFSIZE, 0);
-        if(recv_count == 0 && msgsize == 0)
+        unsigned long chunk_size = 0, chunk_curr = 0;
+        if(is_chunked)
         {
-            break;
+            while(bufpos < bufend && (* bufpos == '\r' || * bufpos == '\n'))
+                bufpos++;
+
+            if(bufpos != bufend)
+            {
+                char * tmp = strchr(bufpos, '\r');
+                if(tmp)
+                {
+                    sscanf(bufpos, "%lx", & chunk_size);
+                    bufpos = tmp + 2;
+                    if(chunk_size == 0)
+                        break;
+                }
+            }
         }
-        if(recv_count <= 0)
+        else
         {
+            if(msgcurr != 0)
+                break;
+            chunk_size = msgsize;
+        }
+
+        if(bufpos != bufend) /* Write content */
+        {
+            chunk_curr = (unsigned long)(bufend - bufpos);
+            if((is_chunked == 1 || chunk_size > 0) && chunk_curr > chunk_size)
+                chunk_curr = chunk_size;
+            if(chunk_curr > 0)
+            {
+                msgcurr += chunk_curr;
+                if(fwrite(bufpos, sizeof(char), chunk_curr, fp) != (size_t)chunk_curr)
+                {
+                    if(more_verbose) printf("\n\n");
+                    fprintf(ERRFP, "Warning: Not all bytes was written\n");
+                }
+                if(more_verbose)
+                {
+                    printf("W");
+                    fflush(stdout);
+                }
+                bufpos += chunk_curr;
+                if(is_chunked && bufpos != bufend)
+                    continue;
+            }
+        }
+
+        while(chunk_size == 0 || chunk_curr < chunk_size)
+        {
+            ssize_t recv_count;
+            size_t write_count;
+
+            if(bufpos != bufend)
+            {
+                memmove(buffer, bufpos, (size_t)(bufend - bufpos));
+                bufend -= (bufpos - buffer);
+                bufpos = buffer;
+            }
+            else
+            {
+                bufend = bufpos = buffer;
+            }
+
+            assert(is_chunked != 0 || chunk_curr == msgcurr);
+
+            recv_count = recv(sock_fd, bufend, (NETBUFSIZE - (size_t)(bufend - bufpos)), 0);
+            if(is_chunked == 0 && recv_count == 0 && chunk_size == 0)
+            {
+                break;
+            }
+            if(recv_count <= 0)
+            {
 #if defined(_WIN32)
-            char * wsa_error_str = NULL;
-            FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-                           NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
-            fprintf(ERRFP, "Error %d with recv(): %s", WSAGetLastError(), wsa_error_str);
-            LocalFree(wsa_error_str);
+                char * wsa_error_str = NULL;
+                FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+                               NULL, WSAGetLastError(), 0, (LPSTR)(& wsa_error_str), 0, NULL);
+                fprintf(ERRFP, "Error %d with recv(): %s", WSAGetLastError(), wsa_error_str);
+                LocalFree(wsa_error_str);
 #else
-            fprintf(ERRFP, "Error %d with recv(): %s\n", errno, strerror(errno));
+                fprintf(ERRFP, "Error %d with recv(): %s\n", errno, strerror(errno));
 #endif
-            conn_close(&sock_fd);
-            free(buffer);
-            return EXIT_FAILURE;
-        }
-        if(more_verbose)
-        {
-            printf("R");
-            fflush(stdout);
-        }
+                conn_close(&sock_fd);
+                free(buffer);
+                return EXIT_FAILURE;
+            }
+            if(more_verbose)
+            {
+                printf("R");
+                fflush(stdout);
+            }
 
-        if(fwrite(buffer, sizeof(char), recv_count, fp) != (size_t)recv_count)
-        {
-            if(more_verbose) printf("\n\n");
-            fprintf(ERRFP, "Warning: Not all bytes was written\n");
+            bufend += recv_count;
+            * bufend = '\0';
+
+            if(is_chunked && chunk_size == 0)
+                break;
+
+            write_count = (size_t)(chunk_size - chunk_curr);
+            if(write_count >= (size_t)recv_count)
+                write_count = (size_t)recv_count;
+
+            if(fwrite(bufpos, sizeof(char), write_count, fp) != write_count)
+            {
+                if(more_verbose) printf("\n\n");
+                fprintf(ERRFP, "Warning: Not all bytes was written\n");
+            }
+            if(more_verbose)
+            {
+                printf("W");
+                fflush(stdout);
+            }
+            bufpos += write_count;
+            chunk_curr += write_count;
+            msgcurr += write_count;
         }
-        if(more_verbose)
-        {
-            printf("W");
-            fflush(stdout);
-        }
-        msgcurr += recv_count;
     }
 
     if(!socket_good(&sock_fd_ka))

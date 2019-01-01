@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2018, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -17,7 +17,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 /*
-   This code based on LZMA SDK 18.05, see lzma1514.7z/C/Util/Lzma/LzmaUtil.c
+   This code based on LZMA SDK 18.06, see lzma1806.7z/C/Util/Lzma/LzmaUtil.c
 */
 
 #include "drwebmirror.h"

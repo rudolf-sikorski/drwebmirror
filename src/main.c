@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2018, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -177,8 +177,8 @@ void show_help()
            "| 9.0-9.2 for Android               | android/9/version.lst             |  A  |\n"
            "| 10.0 for Android/BlackBerry       | android/10/version.lst            |  A  |\n"
            "| 10.1 for Android/BlackBerry       | android/10.1/version.lst          |  A  |\n"
-           "| 11.0-11.1 for Android             | android/11/version.lst            |  A  |\n"
-           "| 12.0 for Android                  | android/12/version.lst            |  A  |\n"
+           "| 11.0-11.1 for Android/BlackBerry  | android/11/version.lst            |  A  |\n"
+           "| 12.0-12.3 for Android/BlackBerry  | android/12/version.lst            |  A  |\n"
            "|-----------------------------------+-----------------------------------+-----|\n");
 }
 

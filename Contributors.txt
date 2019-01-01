@@ -1,12 +1,12 @@
 The list of contributors of the DrWebMirror project:
 
-  * 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+  * 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
       Primary developer
 
   * 2013, Peter Zhigalov <peter.zhigalov@gmail.com>
       Original Bash script implementation
 
-  * 2015-2016, s0t <s0t@s0t.ru>
+  * 2015-2018, s0t <s0t@s0t.ru>
       Remote directories and servers database, Android update protocol
       description, patches and suggestions
 
@@ -23,7 +23,7 @@ The list of authors of a third-party code:
     2001, Tom St Denis
 
   * LZMA SDK
-    1999-2015, Igor Pavlov
+    1999-2018, Igor Pavlov
 
   * Strlcpy implementation from OpenBSD
     1998, 2015, Todd C. Miller <Todd.Miller@courtesan.com>

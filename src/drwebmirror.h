@@ -21,7 +21,7 @@
 #define DRWEBMIRROR_H_INCLUDED
 
 /* Begin of custom defines block */
-#define  PROG_VERSION   "1.12"
+#define  PROG_VERSION   "1.13"
 #define  LOCKFILENAME   "drwebmirror.lock"
 #define  DEF_USERID     "0137803332"
 #define  DEF_MD5SUM     "41177e5785be991545dbf210c1467671"

@@ -1,3 +1,12 @@
+[v1.13] - 01 Jan 2019
+* Added support for response without Content-Length header
+* Added support for response with Transfer-Encoding: chunked
+* Added option to override HTTP protocol version
+* Fixed parsing issues in modern revisions of v5 protocol
+* Updated known remote directories
+* Updated default key values
+* Updated LZMA SDK to 18.06
+
 [v1.12] - 15 Feb 2016
 * Added support of DrWeb 10.1 for OS X
 * Added support of DrWeb 5.0/6.0 for Microsoft Exchange

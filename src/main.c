@@ -54,7 +54,7 @@ int8_t verbose;
 int8_t more_verbose;
 
 /* Show help message */
-void show_help()
+void show_help(void)
 {
     printf("DrWebMirror " PROG_VERSION ", tool for creating a mirror of DrWeb update server.\n"
            "Homepage: https://fami.codefreak.ru/osp/drwebmirror\n\n"
@@ -95,8 +95,8 @@ void show_help()
            "  update.msk13.drweb.com   update.msk14.drweb.com   update.msk15.drweb.com\n"
            "  update.us.drweb.com      update.us1.drweb.com     update.fr1.drweb.com\n"
            "  update.kz.drweb.com      update.nsk1.drweb.com    update.geo.drweb.com\n"
-           "\n"
-           "Known remote directories and update protocol versions:\n"
+           "\n");
+    printf("Known remote directories and update protocol versions:\n"
            "\n"
            "|-----------------------------------+-----------------------------------+-----|\n"
            "|           DrWeb Version           |     Remote directory or file      |  P  |\n"
@@ -132,8 +132,8 @@ void show_help()
            "| 6.0 for Kerio WinRoute            | x86/600/keriowinroute/windows     | 4/5 |\n"
            "|                                   | x64/600/keriowinroute/windows     | 4/5 |\n"
            "| 6.0 for Kerio MailServer          | x86/600/keriomailserver/windows   | 4/5 |\n"
-           "|                                   | x64/600/keriomailserver/windows   | 4/5 |\n"
-           "|-----------------------------------+-----------------------------------+-----|\n"
+           "|                                   | x64/600/keriomailserver/windows   | 4/5 |\n");
+    printf("|-----------------------------------+-----------------------------------+-----|\n"
            "| 5.0/6.0 for Unix                  | unix/500                          | 4/5 |\n"
            "| 6.0/8.0 for Unix                  | unix/700                          | 4/5 |\n"
            "| 9.0 for Unix                      | unix/900                          | 4/5 |\n"
@@ -183,7 +183,7 @@ void show_help()
 }
 
 /* Show help hint message */
-void show_hint()
+void show_hint(void)
 {
     fprintf(ERRFP, "Try `drwebmirror --help' or `drwebmirror -h' for view help.\n");
 }

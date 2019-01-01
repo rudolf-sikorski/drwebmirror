@@ -138,7 +138,7 @@ extern char lockfile[384];
 
 /* Common */
 /* Get system timezone */
-void set_tzshift();
+void set_tzshift(void);
 /* Set SIGHUP handle */
 #if !defined(_WIN32)
 void sighup_handler(int i);
@@ -154,13 +154,13 @@ size_t bsd_strlcpy(char * dst, const char * src, size_t dsize);
 /* Get UserID and MD5 sum from keyfile */
 int parse_keyfile(const char * filename);
 /* Update using version 4 of update protocol (flat file, crc32) */
-int update4();
+int update4(void);
 /* Update using version 5 of update protocol (flat file, sha256) */
-int update5();
+int update5(void);
 /* Update using version 7 of update protocol (xml file, sha256) */
-int update7();
+int update7(void);
 /* Update using Android update protocol */
-int updateA();
+int updateA(void);
 
 /* Network */
 /* Return values for download() and download_check() functions */
@@ -171,9 +171,9 @@ int updateA();
 #define DL_NOT_FOUND    0x04
 #define DL_SUCCESS(st) ((st)==(DL_EXIST)||(st)==(DL_DOWNLOADED))
 /* Startup network */
-void conn_startup();
+void conn_startup(void);
 /* Cleanup network */
-void conn_cleanup();
+void conn_cleanup(void);
 /* Download file <filename> */
 int download(const char * filename);
 /* Download file <filename> and compare checksum <checksum_base>
@@ -201,7 +201,7 @@ FILE * fopen_temp(char * filename);
 /* Lock file */
 int do_lock(const char * directory);
 /* Unlock file */
-int do_unlock();
+int do_unlock(void);
 
 /* Checksum */
 /* Calculate MD5 sum of file <filename> */

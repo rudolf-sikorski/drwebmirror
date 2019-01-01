@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2018, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -73,7 +73,7 @@ char proxy_address[256];
 uint16_t proxy_port;
 char proxy_auth[77];
 /* Keep-Alive connection descriptor */
-sockfd_t sock_fd_ka;
+static sockfd_t sock_fd_ka;
 
 /* Check socket status */
 static int socket_good(sockfd_t * sock_fd)
@@ -98,7 +98,7 @@ static void conn_close(sockfd_t * sock_fd)
 }
 
 /* Startup network */
-void conn_startup()
+void conn_startup(void)
 {
 #if defined(_WIN32)
     WSADATA wsa_data;
@@ -110,7 +110,7 @@ void conn_startup()
 }
 
 /* Cleanup network */
-void conn_cleanup()
+void conn_cleanup(void)
 {
     if(socket_good(&sock_fd_ka))
         conn_close(&sock_fd_ka);

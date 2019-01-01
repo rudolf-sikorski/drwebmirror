@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2018, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -78,7 +78,7 @@ int parse_keyfile(const char * filename)
 }
 
 /* Build caching tree for v4 */
-static void cache4()
+static void cache4(void)
 {
     char buf[STRBUFSIZE];
     FILE * fp;
@@ -117,7 +117,7 @@ static void cache4()
 }
 
 /* Update using version 4 of update protocol (flat file, crc32) */
-int update4()
+int update4(void)
 {
     char buf[STRBUFSIZE];
     FILE * fp;
@@ -273,7 +273,7 @@ repeat4: /* Goto here if checksum mismatch */
 }
 
 /* Build caching tree for v5 */
-static void cache5()
+static void cache5(void)
 {
     char buf[STRBUFSIZE];
     FILE * fp;
@@ -310,7 +310,7 @@ static void cache5()
 }
 
 /* Update using version 5 of update protocol (flat file, sha256) */
-int update5()
+int update5(void)
 {
     char buf[STRBUFSIZE];
     FILE * fp;
@@ -565,7 +565,7 @@ static void cache7(const char * file, const char * directory)
 }
 
 /* Update using version 7 of update protocol (xml file, sha256) */
-int update7()
+int update7(void)
 {
     char buf[STRBUFSIZE];
     FILE * fp;
@@ -812,7 +812,7 @@ static void cacheA(const char * directory)
 }
 
 /* Update using Android update protocol */
-int updateA()
+int updateA(void)
 {
     char buf[STRBUFSIZE], real_dir[STRBUFSIZE];
     FILE * fp;

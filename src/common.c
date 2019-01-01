@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -23,7 +23,7 @@
 time_t tzshift;
 
 /* Get system timezone */
-void set_tzshift()
+void set_tzshift(void)
 {
     time_t currtime = time(NULL);
     struct tm * ptm;

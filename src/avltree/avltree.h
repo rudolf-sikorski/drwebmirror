@@ -2,7 +2,7 @@
  * File: avltree.h
  * Description: Simple AVL Tree
  * Author: Rudolf Sikorski <rudolf.sikorski@freenet.de>
- * Revision: Sat, 16 Jan 2016 18:20:26 +0000
+ * Revision: Tue, 01 Jan 2019 14:29:12 +0000
  * License: Public Domain
  */
 #ifndef AVLTREE_H

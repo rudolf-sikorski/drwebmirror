@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -31,7 +31,7 @@
 #endif
 
 /* Lock file descriptor */
-int lockfd;
+static int lockfd;
 /* Lokfile name */
 char lockfile[384];
 
@@ -393,7 +393,7 @@ int do_lock(const char * directory)
 }
 
 /* Unlock file */
-int do_unlock()
+int do_unlock(void)
 {
 #if !defined(__CYGWIN__) && !defined(_WIN32)
     struct flock fl;

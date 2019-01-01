@@ -2,7 +2,7 @@
  * File: avltree.cpp
  * Description: Simple AVL Tree
  * Author: Rudolf Sikorski <rudolf.sikorski@freenet.de>
- * Revision: Sat, 16 Jan 2016 18:20:26 +0000
+ * Revision: Tue, 01 Jan 2019 14:29:12 +0000
  * License: Public Domain
  */
 #include <stdlib.h>
@@ -10,7 +10,7 @@
 #include "avltree.h"
 
 /* Create new node with key <key> */
-avl_node * new_node(const avl_key * key)
+static avl_node * new_node(const avl_key * key)
 {
     avl_node * new_node = (avl_node *)malloc(sizeof(avl_node));
     new_node->key.name = key->name;
@@ -21,25 +21,25 @@ avl_node * new_node(const avl_key * key)
 }
 
 /* Comparison function "less" */
-avl_s_t less(const avl_key * key_left, const avl_key * key_right)
+static avl_s_t less(const avl_key * key_left, const avl_key * key_right)
 {
     return strcmp(key_left->name, key_right->name) < 0 ? 1 : 0;
 }
 
 /* Height of subtree with root <root> */
-avl_u_t height(const avl_node * root)
+static avl_u_t height(const avl_node * root)
 {
     return root ? root->height : 0;
 }
 
 /* Balance factor of subtree with root <root> */
-avl_s_t balance_factor(const avl_node * root)
+static avl_s_t balance_factor(const avl_node * root)
 {
     return (avl_s_t)height(root->right) - (avl_s_t)height(root->left);
 }
 
 /* Correction tree height after turns */
-void fix_height(avl_node * root)
+static void fix_height(avl_node * root)
 {
     avl_u_t hl = height(root->left);
     avl_u_t hr = height(root->right);
@@ -47,7 +47,7 @@ void fix_height(avl_node * root)
 }
 
 /* Right turn over <a> */
-avl_node * rotate_right(avl_node * a)
+static avl_node * rotate_right(avl_node * a)
 {
     avl_node * b = a->left;
     a->left = b->right;
@@ -58,7 +58,7 @@ avl_node * rotate_right(avl_node * a)
 }
 
 /* Big right turn over <a> */
-avl_node * rotate_right_big(avl_node * a)
+static avl_node * rotate_right_big(avl_node * a)
 {
     avl_node * b = a->left;
     avl_node * c = b->right;
@@ -73,7 +73,7 @@ avl_node * rotate_right_big(avl_node * a)
 }
 
 /* Left turn over <a> */
-avl_node * rotate_left(avl_node * a)
+static avl_node * rotate_left(avl_node * a)
 {
     avl_node * b = a->right;
     a->right = b->left;
@@ -84,7 +84,7 @@ avl_node * rotate_left(avl_node * a)
 }
 
 /* Big left turn over <a> */
-avl_node * rotate_left_big(avl_node * a)
+static avl_node * rotate_left_big(avl_node * a)
 {
     avl_node * b = a->right;
     avl_node * c = b->left;
@@ -99,7 +99,7 @@ avl_node * rotate_left_big(avl_node * a)
 }
 
 /* Balancing node <root> */
-avl_node * balance(avl_node * root)
+static avl_node * balance(avl_node * root)
 {
     fix_height(root);
     if(balance_factor(root) == 2)
@@ -120,7 +120,7 @@ avl_node * balance(avl_node * root)
 }
 
 /* Insert key <key> into subtree with root <root> */
-avl_node * avl_insert_key(avl_node * root, const avl_key * key)
+static avl_node * avl_insert_key(avl_node * root, const avl_key * key)
 {
     if(!root)
         return new_node(key);
@@ -143,7 +143,7 @@ avl_node * avl_insert(avl_node * root, const char * name, const char * hash)
 }
 
 /* Find key <key> into subtree with root <root> */
-const avl_key * avl_find_key(const avl_node * root, const avl_key * key)
+static const avl_key * avl_find_key(const avl_node * root, const avl_key * key)
 {
     if(!root)
         return NULL;

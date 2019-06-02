@@ -143,7 +143,10 @@ void show_help(void)
            "| 6.0 for Kerio WinRoute            | x86/600/keriowinroute/windows     | 4/5 |\n"
            "|                                   | x64/600/keriowinroute/windows     | 4/5 |\n"
            "| 6.0 for Kerio MailServer          | x86/600/keriomailserver/windows   | 4/5 |\n"
-           "|                                   | x64/600/keriomailserver/windows   | 4/5 |\n");
+           "|                                   | x64/600/keriomailserver/windows   | 4/5 |\n"
+           "|-----------------------------------+-----------------------------------+-----|\n"
+           "| Vaderetro Anti-Spam Plug-In       | unix/maild/vr/i386                | 4/5 |\n"
+           "|                                   | unix/maild/vr/i386/solaris9       | 4/5 |\n");
     printf("|-----------------------------------+-----------------------------------+-----|\n"
            "| 5.0/6.0 for Unix                  | unix/500                          | 4/5 |\n"
            "| 6.0/8.0 for Unix                  | unix/700                          | 4/5 |\n"
@@ -157,7 +160,7 @@ void show_help(void)
            "|                                   | unix/1100/dws                     |  5  |\n"
            "|                                   | unix/1100/macosx                  |  5  |\n"
            "|                                   | unix/1100/antispam                |  5  |\n"
-           "| 11.1 beta for Unix                | unix/1110/version                 | 5.2 |\n"
+           "| 11.1 for Unix                     | unix/1110/version                 | 5.2 |\n"
            "|                                   | unix/1110/vdb                     | 5.2 |\n"
            "|                                   | unix/1110/vdb64                   | 5.2 |\n"
            "|                                   | unix/1110/dws                     | 5.2 |\n"
@@ -245,6 +248,10 @@ protocol_version detect_proto(const char * dir)
         "servers/433/windows",
         "netware/"
     };
+    const char * proto_5[] =
+    {
+        "unix/maild/vr"
+    };
     const char * proto_7[] =
     {
         "xmlzone/"
@@ -259,6 +266,9 @@ protocol_version detect_proto(const char * dir)
     for(i = 0; i < sizeof(proto_4) / sizeof(char *); i++)
         if(strncmp(dir, proto_4[i], strlen(proto_4[i])) == 0)
             return PROTO_VER_4;
+    for(i = 0; i < sizeof(proto_5) / sizeof(char *); i++)
+        if(strncmp(dir, proto_5[i], strlen(proto_5[i])) == 0)
+            return PROTO_VER_5;
     for(i = 0; i < sizeof(proto_7) / sizeof(char *); i++)
         if(strncmp(dir, proto_7[i], strlen(proto_7[i])) == 0)
             return PROTO_VER_7;
@@ -270,10 +280,16 @@ protocol_version detect_proto(const char * dir)
         const char * subdir = dir + strlen("unix/");
         size_t version = 0;
         for(; * subdir != '/' && * subdir != '\0'; subdir++)
+        {
+            if(* subdir < '0' || * subdir > '9')
+            {
+                version = 0;
+                break;
+            }
             version = version * 10 + (size_t)(* subdir - '0');
+        }
         if(version >= 1110)
             return PROTO_VER_5_2;
-
     }
     return PROTO_VER_5;
 }

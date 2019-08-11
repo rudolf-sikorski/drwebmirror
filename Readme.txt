@@ -10,7 +10,7 @@ License:
     GNU GPL v3 (main program), various (3rd party components).
 
 Homepage:
-    https://fami.codefreak.ru/osp/drwebmirror/
+    https://github.com/rudolf-sikorski/drwebmirror
 
 Compilation:
     * Unix-like systems:

@@ -68,7 +68,7 @@ int8_t more_verbose;
 void show_help(void)
 {
     printf("DrWebMirror " PROG_VERSION ", tool for creating a mirror of DrWeb update server.\n"
-           "Homepage: https://fami.codefreak.ru/osp/drwebmirror\n\n"
+           "Homepage: https://github.com/rudolf-sikorski/drwebmirror\n\n"
            "Usage: drwebmirror <options>\n"
            "\n"
            "Options:\n"

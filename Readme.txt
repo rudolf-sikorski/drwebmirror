@@ -24,8 +24,8 @@ Compilation:
       > nmake -f Makefile.nmake
 
 Submitting Bugs:
-    * GitLab issues tracker:
-      https://fami.codefreak.ru/gitlab/Rudolf/drwebmirror/issues
+    * GitHub issues tracker:
+      https://github.com/rudolf-sikorski/drwebmirror/issues
     * Email:
       Rudolf Sikorski <rudolf.sikorski@freenet.de>
 

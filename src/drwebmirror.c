@@ -814,11 +814,15 @@ static void cacheA(const char * directory)
             {
                 char md5_base[33];
                 char filename_base[STRBUFSIZE], filename[STRBUFSIZE];
-                sscanf(buf, "%*[^,], %*[^,], %*[^,], %[^,], %*[^,], %*[^,], %s",
-                       md5_base, filename_base);
-                sprintf(filename, "%s/%s", directory, filename_base);
-                to_lowercase(md5_base);
-                tree = avl_insert(tree, filename, md5_base);
+                unsigned long file_op = 0;
+                sscanf(buf, "%*[^,], %lx, %*[^,], %[^,], %*[^,], %*[^,], %s",
+                       & file_op, md5_base, filename_base);
+                if(file_op == 0x0) /* Need to download this file */
+                {
+                    sprintf(filename, "%s/%s", directory, filename_base);
+                    to_lowercase(md5_base);
+                    tree = avl_insert(tree, filename, md5_base);
+                }
             }
         }
         else
@@ -911,37 +915,59 @@ repeatA: /* Goto here if checksum mismatch */
             {
                 char md5_base[33], md5_real[33];
                 char filename_base[STRBUFSIZE], filename[STRBUFSIZE];
-                int status;
                 off_t filesize;
                 unsigned long filesize_ul = 0;
+                unsigned long file_op = 0;
 
-                sscanf(buf, "%*[^,], %*[^,], %lx, %[^,], %*[^,], %*[^,], %s",
-                       & filesize_ul, md5_base, filename_base);
+                sscanf(buf, "%*[^,], %lx, %lx, %[^,], %*[^,], %*[^,], %s",
+                       & file_op, & filesize_ul, md5_base, filename_base);
                 sprintf(filename, "%s/%s", real_dir, filename_base);
                 to_lowercase(md5_base);
                 filesize = (off_t)filesize_ul;
 
-                status = download_check(filename, md5_base, md5_real, & md5sum, "MD5");
-                if(status == DL_TRY_AGAIN && counter_global < MAX_REPEAT) /* Try again */
+                switch(file_op)
                 {
-                    counter_global++;
-                    fclose(fp);
-                    sleep(REPEAT_SLEEP);
-                    goto repeatA; /* Yes, it is goto. Sorry, Dijkstra... */
+                case 0x0: /* Need to download this file */
+                {
+                    int status = download_check(filename, md5_base, md5_real, & md5sum, "MD5");
+                    if(status == DL_TRY_AGAIN && counter_global < MAX_REPEAT) /* Try again */
+                    {
+                        counter_global++;
+                        fclose(fp);
+                        sleep(REPEAT_SLEEP);
+                        goto repeatA; /* Yes, it is goto. Sorry, Dijkstra... */
+                    }
+                    else if(!DL_SUCCESS(status))
+                    {
+                        fclose(fp);
+                        return EXIT_FAILURE;
+                    }
+                    if(!check_size(filename, filesize)) /* Wrong size */
+                    {
+                        fclose(fp);
+                        if(counter_global >= MAX_REPEAT)
+                            return EXIT_FAILURE;
+                        counter_global++;
+                        sleep(REPEAT_SLEEP);
+                        goto repeatA; /* Yes, it is goto. Sorry, Dijkstra... */
+                    }
+                    break;
                 }
-                else if(!DL_SUCCESS(status))
+                case 0x2: /* Need to delete this file */
                 {
+                    if(exist(filename))
+                    {
+                        printf("Deleting %s\n", filename);
+                        delete_files(real_dir, filename_base);
+                    }
+                    break;
+                }
+                default:
+                {
+                    fprintf(ERRFP, "Error: Unknown file operation %08lx for fine %s\n", file_op, filename_base);
                     fclose(fp);
                     return EXIT_FAILURE;
                 }
-                if(!check_size(filename, filesize)) /* Wrong size */
-                {
-                    fclose(fp);
-                    if(counter_global >= MAX_REPEAT)
-                        return EXIT_FAILURE;
-                    counter_global++;
-                    sleep(REPEAT_SLEEP);
-                    goto repeatA; /* Yes, it is goto. Sorry, Dijkstra... */
                 }
             }
         }

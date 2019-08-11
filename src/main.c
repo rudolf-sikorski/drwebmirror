@@ -193,7 +193,7 @@ void show_help(void)
            "| 10.0 for Android/BlackBerry       | android/10/version.lst          |   A   |\n"
            "| 10.1 for Android/BlackBerry       | android/10.1/version.lst        |   A   |\n"
            "| 11.0-11.1 for Android/BlackBerry  | android/11/version.lst          |   A   |\n"
-           "| 12.0-12.3 for Android/BlackBerry  | android/12/version.lst          |   A   |\n"
+           "| 12.0-12.4 for Android/BlackBerry  | android/12/version.lst          |   A   |\n"
            "|-----------------------------------+---------------------------------+-------|\n");
 }
 

@@ -6,7 +6,7 @@ The list of contributors of the DrWebMirror project:
   * 2013, Peter Zhigalov <peter.zhigalov@gmail.com>
       Original Bash script implementation
 
-  * 2015-2018, s0t <s0t@s0t.ru>
+  * 2015-2019, s0t <s0t@s0t.ru>
       Remote directories and servers database, Android update protocol
       description, patches and suggestions
 

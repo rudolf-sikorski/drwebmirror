@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2016, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -73,7 +73,7 @@ int crc32sum(const char * filename, char str[9])
     fclose(file);
 
     if(str)
-        sprintf(str, "%X", crc);
+        sprintf(str, "%X", (unsigned int)crc);
 
     return EXIT_SUCCESS;
 }
@@ -130,7 +130,7 @@ int crc32sum_lzma(const char * filename, char str[9])
     if(name[0] != '\0') remove(name);
 
     if(str)
-        sprintf(str, "%X", crc);
+        sprintf(str, "%X", (unsigned int)crc);
 
     return EXIT_SUCCESS;
 }

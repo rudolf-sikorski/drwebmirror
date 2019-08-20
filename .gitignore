@@ -9,6 +9,7 @@ bin/*
 obj/*
 *.layout
 *.depend
+/build
 /drwebmirror
 /xmlzone
 /android

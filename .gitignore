@@ -5,6 +5,8 @@
 *.autosave
 *.pro.user
 *.pro.user.*
+*.txt.user
+*.txt.user.*
 bin/*
 obj/*
 *.layout

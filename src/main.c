@@ -872,7 +872,9 @@ update_begin:
 
     conn_startup();
 
-    printf("---------- Update bases (v%s) ----------\n", protocol_version_to_string(proto));
+    printf(proto == PROTO_VER_5_2 ? "" : "-");
+    printf("--------- Update bases (v%s) ---------", protocol_version_to_string(proto));
+    printf(proto == PROTO_VER_5_2 ? "\n" : "-\n");
     printf("Date:  %s\n", time3);
     printf("From:  http://%s:%u/%s\n", servername, (unsigned)serverport, remotedir);
     if(getcwd(cwd, sizeof(cwd)) == NULL)

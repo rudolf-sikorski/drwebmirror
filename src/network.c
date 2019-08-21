@@ -830,8 +830,8 @@ redirect: /* Goto here if 30x received */
                 fflush(stdout);
             }
             bufpos += write_count;
-            chunk_curr += write_count;
-            msgcurr += write_count;
+            chunk_curr += (unsigned long)write_count;
+            msgcurr += (unsigned long)write_count;
         }
     }
 

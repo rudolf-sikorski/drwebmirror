@@ -76,13 +76,14 @@
 #include <stdint.h>
 #include "avltree/avltree.h"
 
-#if !(defined(_WIN32) && (defined(_MSC_VER) || defined(__WATCOMC__)))
+#if !defined(_WIN32)
 #include <unistd.h>
 #else
 #include <direct.h>
 #include <io.h>
 #include <windows.h>
 #define sleep(s) Sleep((s)*1000)
+#if (defined(_MSC_VER) || defined(__WATCOMC__))
 #if defined(_MSC_VER)
 #define chmod(name, mode)       (_chmod((name), (mode)))
 #define chdir(path)             (_chdir((path)))
@@ -92,6 +93,7 @@
 #define close(fd)               (_close((fd)))
 #endif
 #define NO_POSIX_API
+#endif
 #endif
 
 /* Flag of use verbose output */

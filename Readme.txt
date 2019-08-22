@@ -16,14 +16,14 @@ Compilation:
     * Unix-like systems:
       $ mkdir build
       $ cd build
-      $ cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+      $ cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:STRING=/usr/local ..
       $ make
       $ sudo make install
     * Windows (MinGW):
       > md build
       > cd build
       > set PATH=C:\MinGW\bin;%PATH%
-      > cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+      > cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE:STRING=Release ..
       > mingw32-make
     * Windows (Visual Studio 2003+):
       > md build
@@ -33,7 +33,7 @@ Compilation:
     * Windows (OpenWatcom):
       > md build
       > cd build
-      > cmake -G "Watcom WMake" -DCMAKE_BUILD_TYPE=Release ..
+      > cmake -G "Watcom WMake" -DCMAKE_BUILD_TYPE:STRING=Release ..
       > wmake
 
 Submitting Bugs:

@@ -22,7 +22,7 @@
 ```bash
 mkdir build
 cd build
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:STRING=/usr/local ..
 make
 sudo make install
 ```
@@ -33,7 +33,7 @@ sudo make install
 md build
 cd build
 set PATH=C:\MinGW\bin;%PATH%
-cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+cmake -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE:STRING=Release ..
 mingw32-make
 ```
 
@@ -51,7 +51,7 @@ cmake --build . --config Release
 ```bat
 md build
 cd build
-cmake -G "Watcom WMake" -DCMAKE_BUILD_TYPE=Release ..
+cmake -G "Watcom WMake" -DCMAKE_BUILD_TYPE:STRING=Release ..
 wmake
 ```
 

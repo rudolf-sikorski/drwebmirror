@@ -1,3 +1,10 @@
+[v1.14] - 22 Aug 2019
+* Added support for v5.2 update protocol
+* Updated known remote directories
+* Fixed Android protocol
+* Moved to CMake
+* Moved to GitHub
+
 [v1.13] - 01 Jan 2019
 * Added support for response without Content-Length header
 * Added support for response with Transfer-Encoding: chunked

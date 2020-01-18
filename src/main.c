@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2020, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -166,6 +166,10 @@ void show_help(void)
            "|                                   | unix/1110/dws                   |  5.2  |\n"
            "|                                   | unix/1110/antispam              |  5.2  |\n"
            "|-----------------------------------+---------------------------------+-------|\n"
+           "| 12.0 Beta for macOS               | unix/macosx                     |   5   |\n"
+           "|                                   | unix/1100/vdb64                 |   5   |\n"
+           "|                                   | unix/1100/dws                   |   5   |\n"
+           "|-----------------------------------+---------------------------------+-------|\n"
            "| 9.0 LiveDisk                      | livecd/900/windows              |  4/5  |\n"
            "|-----------------------------------+---------------------------------+-------|\n"
            "| 7.0 for Windows                   | xmlzone/release/700/av          |   7   |\n"
@@ -194,6 +198,7 @@ void show_help(void)
            "| 10.1 for Android/BlackBerry       | android/10.1/version.lst        |   A   |\n"
            "| 11.0-11.1 for Android/BlackBerry  | android/11/version.lst          |   A   |\n"
            "| 12.0-12.4 for Android/BlackBerry  | android/12/version.lst          |   A   |\n"
+           "| 12.5 for Android                  | android/12.2/version.lst        |   A   |\n"
            "|-----------------------------------+---------------------------------+-------|\n");
 }
 

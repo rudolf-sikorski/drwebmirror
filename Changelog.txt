@@ -1,3 +1,8 @@
+[v1.15] - 18 Jan 2020
+* Updated known remote directories
+* Updated default key values
+* Fixed minor bugs
+
 [v1.14] - 22 Aug 2019
 * Added support for v5.2 update protocol
 * Updated known remote directories

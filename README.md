@@ -64,7 +64,7 @@ wmake
 
 ```console
 $ ./drwebmirror --help
-DrWebMirror 1.14, tool for creating a mirror of DrWeb update server.
+DrWebMirror 1.15, tool for creating a mirror of DrWeb update server.
 Homepage: https://github.com/rudolf-sikorski/drwebmirror
 
 Usage: drwebmirror <options>

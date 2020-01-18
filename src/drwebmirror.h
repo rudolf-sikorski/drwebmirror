@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+   Copyright (C) 2014-2020, Rudolf Sikorski <rudolf.sikorski@freenet.de>
 
    This file is part of the `drwebmirror' program.
 
@@ -23,8 +23,8 @@
 /* Begin of custom defines block */
 #define  PROG_VERSION   "1.14"
 #define  LOCKFILENAME   "drwebmirror.lock"
-#define  DEF_USERID     "0137803332"
-#define  DEF_MD5SUM     "41177e5785be991545dbf210c1467671"
+#define  DEF_USERID     "0144652390"
+#define  DEF_MD5SUM     "7ae8805ed29e46901c3bae677f6c73ca"
 #define  MAX_REPEAT     5
 #define  MAX_REDIRECT   5   /* RFC 2068 */
 #define  TIMEOUT        10

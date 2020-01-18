@@ -532,7 +532,7 @@ int main(int argc, char * argv[])
                     }
                     else
                     {
-                        fprintf(ERRFP, "Incorrect usage of option %s.\n\n", argv[i]);
+                        fprintf(ERRFP, "Incorrect usage of option %s.\n\n", argv[i - 1]);
                         show_hint();
                         return EXIT_FAILURE;
                     }

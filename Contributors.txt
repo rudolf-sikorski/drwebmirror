@@ -1,6 +1,6 @@
 The list of contributors of the DrWebMirror project:
 
-  * 2014-2019, Rudolf Sikorski <rudolf.sikorski@freenet.de>
+  * 2014-2020, Rudolf Sikorski <rudolf.sikorski@freenet.de>
       Primary developer
 
   * 2015-2019, s0t <s0t@s0t.ru>

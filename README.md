@@ -164,6 +164,10 @@ Known remote directories and update protocol versions:
 |                                   | unix/1110/dws                   |  5.2  |
 |                                   | unix/1110/antispam              |  5.2  |
 |-----------------------------------+---------------------------------+-------|
+| 12.0 Beta for macOS               | unix/macosx                     |   5   |
+|                                   | unix/1100/vdb64                 |   5   |
+|                                   | unix/1100/dws                   |   5   |
+|-----------------------------------+---------------------------------+-------|
 | 9.0 LiveDisk                      | livecd/900/windows              |  4/5  |
 |-----------------------------------+---------------------------------+-------|
 | 7.0 for Windows                   | xmlzone/release/700/av          |   7   |
@@ -192,6 +196,7 @@ Known remote directories and update protocol versions:
 | 10.1 for Android/BlackBerry       | android/10.1/version.lst        |   A   |
 | 11.0-11.1 for Android/BlackBerry  | android/11/version.lst          |   A   |
 | 12.0-12.4 for Android/BlackBerry  | android/12/version.lst          |   A   |
+| 12.5 for Android                  | android/12.2/version.lst        |   A   |
 |-----------------------------------+---------------------------------+-------|
 ```
 

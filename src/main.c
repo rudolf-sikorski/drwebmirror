@@ -404,6 +404,11 @@ int main(int argc, char * argv[])
     sigaction(SIGHUP, & sigact, 0);
 #endif
 
+#if !defined(NDEBUG)
+    setbuf(stdout, NULL);
+    setbuf(stderr, NULL);
+#endif
+
     for(i = 1; i < argc; i++)
     {
         if(argv[i][0] == '-')
